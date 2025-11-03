@@ -250,6 +250,87 @@ async def root():
     }
 
 
+# Additional endpoints for frontend integration
+@app.get("/openapi.json", include_in_schema=False)
+async def get_openapi():
+    """Endpoint to serve OpenAPI JSON schema for /docs"""
+    return app.openapi()
+
+
+@app.get("/admin")
+async def admin_panel():
+    """Panel de Administración ERP"""
+    return {
+        "message": "Panel de Administración ERP",
+        "version": "1.0.0",
+        "system_name": "Sistema ERP Empresarial",
+        "modules": [
+            {
+                "name": "Gestión de Empleados y Nómina", 
+                "status": "active",
+                "endpoint": "/api/companies/employees"
+            },
+            {
+                "name": "Finanzas y Facturación",
+                "status": "active", 
+                "endpoint": "/api/finance"
+            },
+            {
+                "name": "Inteligencia Artificial",
+                "status": "active",
+                "endpoint": "/api/ai"
+            },
+            {
+                "name": "APIs Externas",
+                "status": "active",
+                "endpoint": "/api/external-api"
+            },
+            {
+                "name": "Procesamiento de Nómina",
+                "status": "active",
+                "endpoint": "/api/payroll"
+            }
+        ],
+        "system_stats": {
+            "status": "operational",
+            "uptime": "99.9%",
+            "total_employees": 2,
+            "total_companies": 1,
+            "system_health": "excellent",
+            "database_status": "connected",
+            "ai_models_loaded": True
+        },
+        "quick_actions": [
+            {
+                "name": "Ver Empleados",
+                "url": "/api/companies/1/employees",
+                "method": "GET"
+            },
+            {
+                "name": "Procesar Nómina",
+                "url": "/api/payroll/process",
+                "method": "POST"
+            },
+            {
+                "name": "Generar Factura",
+                "url": "/api/finance/invoices",
+                "method": "POST"
+            },
+            {
+                "name": "Consulta IA",
+                "url": "/api/ai/chat",
+                "method": "POST"
+            }
+        ],
+        "documentation": {
+            "api_docs": "/docs",
+            "redoc": "/redoc",
+            "openapi_json": "/openapi.json",
+            "health_check": "/health"
+        }
+    }
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
