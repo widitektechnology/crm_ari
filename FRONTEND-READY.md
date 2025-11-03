@@ -78,8 +78,34 @@ rm -rf app/ src/
 git pull origin main
 ```
 
-### 3. **Reconstrucción Docker**
+### 3. **Reconstrucción Backend (CRÍTICO)**
 ```bash
+cd /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/backend
+
+# Detener y eliminar contenedor problemático
+docker stop erp_backend || true
+docker rm erp_backend || true
+
+# Reconstruir con correcciones FastAPI
+docker build -t erp_backend_fixed .
+docker run -d \
+    --name erp_backend \
+    --network erp_network \
+    -p 8000:8000 \
+    -e CORS_ORIGINS="https://crm.arifamilyassets.com" \
+    --restart unless-stopped \
+    erp_backend_fixed
+
+# Verificar que funciona
+sleep 10
+docker logs erp_backend --tail 5
+curl -f http://localhost:8000/health || echo "Backend aún no está listo"
+```
+
+### 4. **Reconstrucción Frontend**
+```bash
+cd /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/frontend
+
 # Limpiar contenedor existente
 docker stop erp_frontend || true
 docker rm erp_frontend || true
@@ -130,15 +156,22 @@ Después del despliegue:
 ## 🚀 Commit Message Sugerido
 
 ```
-feat: Frontend production deployment fixes
+fix: Production deployment - Backend FastAPI errors and Frontend connectivity
 
+Backend Fixes:
+- Fix FastAPI AssertionError in /update-system-prompt endpoint
+- Use proper BaseModel for request validation instead of Field parameters
+- Update CORS configuration for crm.arifamilyassets.com domain
+- Resolve 502 Bad Gateway errors
+
+Frontend Fixes:
 - Fix 404 errors by migrating to Pages Router only
 - Update all URLs from localhost to production domain
-- Add automatic backend health checking
+- Add automatic backend health checking every 30 seconds
 - Improve dashboard design and responsiveness
 - Configure environment variables for production
 
-Resolves: Frontend deployment issues on crm.arifamilyassets.com
+Resolves: Backend 502 errors and frontend connectivity issues on crm.arifamilyassets.com
 ```
 
 ---
