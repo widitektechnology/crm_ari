@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Conexión</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .info { color: blue; }
+        .test-box { 
+            border: 1px solid #ccc; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Conexión CRM System</h1>
+    
+    <div class="test-box">
+        <h2>✅ Información Básica</h2>
+        <p><strong>URL actual:</strong> <span id="current-url"></span></p>
+        <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+    </div>
+
+    <div class="test-box">
+        <h2>🔗 Enlaces de Prueba</h2>
+        <p><a href="frontend/build/" target="_blank">➤ Ir al CRM (frontend/build/)</a></p>
+        <p><a href="frontend/build/test-simple.html" target="_blank">➤ Test Simple</a></p>
+    </div>
+
+    <script>
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('es-ES');
+    </script>
+</body>
+</html>

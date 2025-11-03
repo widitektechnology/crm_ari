@@ -1,0 +1,75 @@
+📁 ESTRUCTURA DE ARCHIVOS REQUERIDA EN EL SERVIDOR
+
+═══════════════════════════════════════════════════════════════
+
+🎯 PARA QUE FUNCIONE CORRECTAMENTE:
+
+/httpdocs/                           ← Document Root
+├── test-simple.html                 ← DEBE ESTAR AQUÍ
+├── connection-test.html             ← DEBE ESTAR AQUÍ  
+├── frontend/                        ← CARPETA COMPLETA
+│   ├── build/                       ← CRM COMPILADO
+│   │   ├── index.html               ← LOGIN CRM
+│   │   ├── .htaccess
+│   │   ├── _next/                   ← ARCHIVOS JS/CSS
+│   │   ├── dashboard/
+│   │   ├── companies/
+│   │   ├── employees/
+│   │   ├── finance/
+│   │   ├── ai/
+│   │   ├── reports/
+│   │   ├── settings/
+│   │   └── auth/
+│   ├── DEPLOY-NOW.md
+│   ├── DEBUG-404.md
+│   └── (otros archivos del proyecto)
+└── (archivos del backend Python)
+
+═══════════════════════════════════════════════════════════════
+
+🧪 TESTS A REALIZAR:
+
+1. https://crm.arifamilyassets.com/test-simple.html
+   RESULTADO ESPERADO: ✅ Página de test con enlaces
+
+2. https://crm.arifamilyassets.com/frontend/
+   RESULTADO ESPERADO: ✅ Listado de carpeta o página de index
+
+3. https://crm.arifamilyassets.com/frontend/build/
+   RESULTADO ESPERADO: ✅ Login del CRM
+
+4. https://crm.arifamilyassets.com/frontend/build/dashboard/
+   RESULTADO ESPERADO: ✅ Dashboard del CRM o redirección
+
+═══════════════════════════════════════════════════════════════
+
+❌ SI EL TEST 1 FALLA (404 en test-simple.html):
+
+CAUSAS POSIBLES:
+- Los archivos no se subieron al servidor
+- Se subieron al directorio incorrecto
+- Problemas de permisos
+- Document Root apunta a otra ubicación
+
+SOLUCIÓN:
+1. Verificar en Plesk File Manager que existe /httpdocs/test-simple.html
+2. Verificar permisos del archivo (644)
+3. Verificar Document Root en Hosting Settings
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASOS PARA SUBIR ARCHIVOS CORRECTAMENTE:
+
+VÍA PLESK FILE MANAGER:
+1. Login a Plesk
+2. Ir a "Files" o "File Manager"
+3. Navegar a /httpdocs/
+4. Subir test-simple.html aquí
+5. Subir toda la carpeta frontend/ aquí
+
+VÍA FTP:
+1. Conectar a tu servidor FTP
+2. Navegar a /httpdocs/ o /public_html/
+3. Subir archivos aquí
+
+═══════════════════════════════════════════════════════════════
