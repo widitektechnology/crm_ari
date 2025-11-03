@@ -1,0 +1,24 @@
+RewriteEngine On
+
+# Redireccionar página principal al CRM
+RewriteRule ^$ /frontend/build/ [R=301,L]
+RewriteRule ^index\.html$ /frontend/build/ [R=301,L]
+
+# Mantener APIs del backend accesibles
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^ - [L]
+
+RewriteCond %{REQUEST_URI} ^/health$
+RewriteRule ^ - [L]
+
+RewriteCond %{REQUEST_URI} ^/docs
+RewriteRule ^ - [L]
+
+RewriteCond %{REQUEST_URI} ^/admin
+RewriteRule ^ - [L]
+
+# Redireccionar todo lo demás al CRM
+RewriteCond %{REQUEST_URI} !^/frontend/build/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /frontend/build/$1 [L]
