@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f0f8ff;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .success { color: #28a745; font-size: 24px; }
+        .info { color: #17a2b8; margin: 20px 0; }
+        .test-links { margin: 30px 0; }
+        .test-links a { 
+            display: block; 
+            margin: 10px 0; 
+            padding: 10px; 
+            background: #007bff; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px;
+        }
+        .test-links a:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="success">✅ Test Simple Funcionando</h1>
+        <p class="info">Si ves esta página, el servidor web está funcionando correctamente.</p>
+        
+        <div>
+            <p><strong>URL actual:</strong> <span id="url"></span></p>
+            <p><strong>Fecha y hora:</strong> <span id="datetime"></span></p>
+        </div>
+
+        <div class="test-links">
+            <h3>🔗 Pruebas de Enlaces:</h3>
+            <a href="frontend/" target="_blank">Test: Carpeta frontend/</a>
+            <a href="frontend/build/" target="_blank">Test: CRM en frontend/build/</a>
+            <a href="frontend/build/index.html" target="_blank">Test: Login del CRM</a>
+            <a href="connection-test.html" target="_blank">Test: Connection Test</a>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px;">
+            <h3>📋 Siguiente paso:</h3>
+            <p>Haz clic en los enlaces de arriba para probar qué funciona y qué no.</p>
+            <p>Luego reporta los resultados para continuar con el diagnóstico.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('url').textContent = window.location.href;
+        document.getElementById('datetime').textContent = new Date().toLocaleString('es-ES');
+    </script>
+</body>
+</html>

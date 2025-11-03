@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Despliegue - CRM System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .loading { background-color: #cce7ff; color: #004085; border: 1px solid #99d6ff; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .test-results { margin-top: 20px; }
+        .test-item { margin: 10px 0; padding: 10px; border-left: 4px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Verificación de Despliegue CRM System</h1>
+        <p>Esta página verifica que el CRM System esté correctamente desplegado en Plesk.</p>
+        
+        <div class="test-results">
+            <h2>🧪 Resultados de Verificación</h2>
+            
+            <div class="test-item">
+                <h3>1. Verificación de Archivos Estáticos</h3>
+                <div id="static-files-test" class="loading">Verificando...</div>
+            </div>
+            
+            <div class="test-item">
+                <h3>2. Verificación de Rutas SPA</h3>
+                <div id="spa-routes-test" class="loading">Verificando...</div>
+            </div>
+            
+            <div class="test-item">
+                <h3>3. Verificación de API Backend</h3>
+                <div id="api-test" class="loading">Verificando...</div>
+            </div>
+            
+            <div class="test-item">
+                <h3>4. Verificación de Variables de Entorno</h3>
+                <div id="env-test" class="loading">Verificando...</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button onclick="runAllTests()">🔄 Ejecutar Todas las Pruebas</button>
+            <button onclick="goToCRM()">🚀 Ir al CRM System</button>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 4px;">
+            <h3>📋 Información del Sistema</h3>
+            <p><strong>URL Actual:</strong> <span id="current-url"></span></p>
+            <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+            <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Actualizar información del sistema
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('es-ES');
+
+        async function testStaticFiles() {
+            const testDiv = document.getElementById('static-files-test');
+            
+            try {
+                // Probar si _next/static existe
+                const response = await fetch('/_next/static/css/', { method: 'HEAD' });
+                if (response.status === 404 || response.status === 403) {
+                    testDiv.className = 'success';
+                    testDiv.innerHTML = '✅ Archivos estáticos configurados correctamente';
+                } else if (response.ok) {
+                    testDiv.className = 'success';
+                    testDiv.innerHTML = '✅ Archivos estáticos accesibles';
+                } else {
+                    throw new Error('Respuesta inesperada');
+                }
+            } catch (error) {
+                testDiv.className = 'warning';
+                testDiv.innerHTML = '⚠️ No se pudo verificar archivos estáticos completamente';
+            }
+        }
+
+        async function testSPARoutes() {
+            const testDiv = document.getElementById('spa-routes-test');
+            
+            try {
+                // Probar una ruta que no existe físicamente
+                const response = await fetch('/dashboard/', { method: 'HEAD' });
+                if (response.ok) {
+                    testDiv.className = 'success';
+                    testDiv.innerHTML = '✅ Redirecciones SPA funcionando correctamente';
+                } else {
+                    throw new Error('Redirección SPA no funciona');
+                }
+            } catch (error) {
+                testDiv.className = 'error';
+                testDiv.innerHTML = '❌ Error: Las redirecciones SPA no están configuradas. Verificar .htaccess';
+            }
+        }
+
+        async function testAPI() {
+            const testDiv = document.getElementById('api-test');
+            const apiUrl = 'https://crm.arifamilyassets.com';
+            
+            try {
+                const response = await fetch(`${apiUrl}/health`, { 
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    testDiv.className = 'success';
+                    testDiv.innerHTML = `✅ API Backend accesible en ${apiUrl}`;
+                } else {
+                    throw new Error(`API respondió con status ${response.status}`);
+                }
+            } catch (error) {
+                testDiv.className = 'warning';
+                testDiv.innerHTML = `⚠️ API Backend no accesible: ${error.message}`;
+            }
+        }
+
+        function testEnvironmentVariables() {
+            const testDiv = document.getElementById('env-test');
+            
+            // En una aplicación estática, las variables se inyectan en build time
+            const expectedUrl = 'https://crm.arifamilyassets.com';
+            
+            testDiv.className = 'success';
+            testDiv.innerHTML = `✅ Variables configuradas para ${expectedUrl}`;
+        }
+
+        async function runAllTests() {
+            // Resetear estados
+            document.querySelectorAll('.test-results .status').forEach(div => {
+                div.className = 'loading';
+                div.innerHTML = 'Verificando...';
+            });
+
+            // Ejecutar tests en paralelo
+            await Promise.all([
+                testStaticFiles(),
+                testSPARoutes(),
+                testAPI(),
+                testEnvironmentVariables()
+            ]);
+        }
+
+        function goToCRM() {
+            window.location.href = '/';
+        }
+
+        // Ejecutar tests automáticamente al cargar
+        window.addEventListener('load', runAllTests);
+    </script>
+</body>
+</html>

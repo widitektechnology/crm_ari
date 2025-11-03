@@ -1,0 +1,59 @@
+﻿# ðŸš€ INSTRUCCIONES PARA PLESK FILE MANAGER
+
+## ðŸ“‹ Archivos Preparados en esta Carpeta:
+
+### 1. ARCHIVOS DE PRUEBA (subir primero):
+- test-simple.html      â†’ Subir a /httpdocs/
+- connection-test.html  â†’ Subir a /httpdocs/
+
+### 2. CONFIGURACIÃ“N APACHE:
+- .htaccess            â†’ Subir a /httpdocs/ (para SPA routing)
+- .htaccess-simple     â†’ Alternativa mÃ¡s simple
+
+### 3. CRM COMPLETO:
+- crm-build/           â†’ Todo el contenido subir a /httpdocs/
+
+---
+
+## ðŸŽ¯ PASOS EN PLESK:
+
+### Paso 1: Probar Conectividad
+1. Panel Plesk â†’ Files â†’ httpdocs
+2. Upload: test-simple.html
+3. Probar: https://crm.arifamilyassets.com/test-simple.html
+
+### Paso 2: Si funciona, subir CRM
+1. Upload: todo el contenido de crm-build/
+2. Upload: .htaccess
+3. Probar: https://crm.arifamilyassets.com/
+
+### Paso 3: Verificar Permisos (si es necesario)
+En SSH:
+`ash
+chmod 644 /var/www/vhosts/arifamilyassets.com/httpdocs/*.html
+chmod 755 /var/www/vhosts/arifamilyassets.com/httpdocs/
+`
+
+---
+
+## ðŸ”§ Document Root Options:
+
+### OpciÃ³n A: CRM en raÃ­z del dominio
+- Subir contenido de crm-build/ directamente a httpdocs/
+- URL: https://crm.arifamilyassets.com/
+
+### OpciÃ³n B: CRM en subcarpeta
+- Crear carpeta httpdocs/crm/
+- Subir contenido de crm-build/ a httpdocs/crm/
+- URL: https://crm.arifamilyassets.com/crm/
+
+---
+
+## âš ï¸ IMPORTANTE:
+- Mantener estructura de carpetas _next/
+- No olvidar subir .htaccess para routing de React
+- Verificar permisos despuÃ©s de subir
+
+## ðŸ“ž Si hay problemas:
+- Revisar logs: Panel Plesk â†’ Logs
+- Verificar Document Root: Panel Plesk â†’ Hosting Settings
