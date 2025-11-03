@@ -1,11 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Bars3Icon, BellIcon, UserCircleIcon } from '@heroicons/react/24/outline'
+import { useRouter } from 'next/router'
+import { Bars3Icon, BellIcon, UserCircleIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 
 export default function Header({ setSidebarOpen }) {
   const [backendStatus, setBackendStatus] = useState('Verificando...')
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [user, setUser] = useState(null)
+  const router = useRouter()
 
   useEffect(() => {
+    // Cargar datos del usuario
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+
     // Actualizar hora cada segundo
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date())
@@ -35,6 +44,12 @@ export default function Header({ setSidebarOpen }) {
       clearInterval(statusInterval)
     }
   }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated')
+    localStorage.removeItem('user')
+    router.push('/auth/login')
+  }
 
   return (
     <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
@@ -83,10 +98,21 @@ export default function Header({ setSidebarOpen }) {
           <div className="flex items-center gap-x-2">
             <UserCircleIcon className="h-8 w-8 text-gray-400" />
             <div className="hidden lg:block text-sm">
-              <p className="font-semibold text-gray-900">Usuario Admin</p>
-              <p className="text-gray-500">admin@crm.com</p>
+              <p className="font-semibold text-gray-900">{user?.name || 'Usuario'}</p>
+              <p className="text-gray-500">{user?.email || 'email@ejemplo.com'}</p>
             </div>
           </div>
+
+          {/* Logout */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
+            title="Cerrar Sesión"
+          >
+            <span className="sr-only">Cerrar sesión</span>
+            <ArrowRightOnRectangleIcon className="h-6 w-6" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </div>

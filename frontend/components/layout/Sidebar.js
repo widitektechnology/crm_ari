@@ -19,7 +19,7 @@ const navigation = [
   { name: 'Empresas', href: '/companies', icon: BuildingOfficeIcon },
   { name: 'Empleados', href: '/employees', icon: UsersIcon },
   { name: 'Finanzas', href: '/finance', icon: CurrencyDollarIcon },
-  { name: 'IA Tools', href: '/ai', icon: SparklesIcon },
+  { name: 'Herramientas IA', href: '/ai', icon: SparklesIcon },
   { name: 'Reportes', href: '/reports', icon: ChartBarIcon },
   { name: 'Configuración', href: '/settings', icon: CogIcon },
 ]

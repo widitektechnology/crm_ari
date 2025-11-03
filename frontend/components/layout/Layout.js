@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import withAuth from '../withAuth'
 
-export default function Layout({ children }) {
+function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -28,3 +29,5 @@ export default function Layout({ children }) {
     </div>
   )
 }
+
+export default withAuth(Layout)
