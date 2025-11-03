@@ -1,18 +1,17 @@
-# Core Framework
-fastapi>=0.104.1
+# Core Framework - Versiones estables para producción
+fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 
 # Database
-mysql-connector-python>=8.2.0
 SQLAlchemy>=2.0.23
 alembic>=1.13.1
+PyMySQL>=1.1.0
 
 # HTTP Client & External APIs
-httpx>=0.25.2
+httpx>=0.25.0
 requests>=2.31.0
-aiohttp>=3.9.1
 backoff>=2.2.1
 
 # Authentication & Security
@@ -21,26 +20,16 @@ passlib[bcrypt]>=1.7.4
 python-multipart>=0.0.6
 cryptography>=41.0.0
 
-# AI & Machine Learning
-scikit-learn>=1.3.2
+# AI & Machine Learning - Core only
+scikit-learn>=1.3.0
 pandas>=2.1.0
 numpy>=1.24.0
 nltk>=3.8.1
-joblib>=1.3.2
-
-# Email Processing
-email-validator>=2.1.0
+joblib>=1.3.0
 
 # Configuration & Environment
 python-dotenv>=1.0.0
 pyyaml>=6.0.1
-
-# Testing
-pytest>=7.4.3
-pytest-asyncio>=0.21.1
-
-# Logging & Monitoring
-structlog>=23.2.0
 
 # Utilities
 python-dateutil>=2.8.2
