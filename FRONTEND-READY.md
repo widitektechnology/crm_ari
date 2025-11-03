@@ -6,6 +6,14 @@ Este commit incluye las correcciones necesarias para el despliegue en producció
 
 ## 📁 Archivos Modificados
 
+### 🔧 **backend/main.py** - Backend Principal
+- 🚨 **CORREGIDO:** CORS configurado para dominio `crm.arifamilyassets.com`
+- 🔧 **MEJORADO:** Configuración de origen para producción
+
+### 🔧 **backend/src/api/routers/ai.py** - Router AI
+- 🚨 **CORREGIDO:** Endpoint `/update-system-prompt` usando Pydantic BaseModel
+- 🔧 **SOLUCIONADO:** Error FastAPI "non-body parameters must be in path, query, header or cookie"
+
 ### ✅ **pages/index.js** - Dashboard Principal
 - ✨ **NUEVO:** Dashboard moderno con verificación automática del backend
 - 🔗 **CORREGIDO:** Enlaces actualizados al dominio de producción
@@ -34,7 +42,11 @@ Este commit incluye las correcciones necesarias para el despliegue en producció
 
 ## �️ Problemas Resueltos
 
-### 🔥 **Error 404 - Páginas no encontradas**
+### � **Error 502 Bad Gateway - Backend inaccesible**
+- **Causa:** Error FastAPI en parámetro `prompt` mal definido
+- **Solución:** Corregido endpoint con BaseModel de Pydantic
+
+### �🔥 **Error 404 - Páginas no encontradas**
 - **Causa:** Configuración mixta entre App Router y Pages Router
 - **Solución:** Migración completa a Pages Router eliminando directorios conflictivos
 
@@ -45,6 +57,10 @@ Este commit incluye las correcciones necesarias para el despliegue en producció
 ### 🚫 **Errores de configuración Next.js**
 - **Causa:** Configuración `appDir` incompatible
 - **Solución:** next.config.js limpio y optimizado
+
+### 🌐 **CORS Policy Errors**
+- **Causa:** CORS configurado para dominio incorrecto
+- **Solución:** CORS actualizado para `crm.arifamilyassets.com`
 
 ## 🚀 Instrucciones de Despliegue
 

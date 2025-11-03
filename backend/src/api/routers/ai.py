@@ -372,17 +372,22 @@ async def get_response_analytics():
         )
 
 
+class UpdateSystemPromptRequest(BaseModel):
+    prompt: str = Field(..., min_length=10, description="New system prompt")
+
+
 @router.post("/update-system-prompt")
-async def update_system_prompt(prompt: str = Field(..., description="New system prompt")):
+async def update_system_prompt(request: UpdateSystemPromptRequest):
     """Update the conversational agent's system prompt"""
     try:
         # In a real implementation, this would use the AI service
         # ai_service = get_ai_service()
-        # result = await ai_service.update_system_prompt(prompt)
+        # result = await ai_service.update_system_prompt(request.prompt)
         
         return {
             "success": True,
             "message": "System prompt updated successfully",
+            "prompt_length": len(request.prompt),
             "updated_at": datetime.now().isoformat()
         }
         

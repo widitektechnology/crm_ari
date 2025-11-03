@@ -87,8 +87,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # Next.js development server
         "http://localhost:3001",  # Alternative port
-        "https://erp-sistema.com",  # Production domain
-        "https://*.erp-sistema.com",  # Subdomains
+        "https://crm.arifamilyassets.com",  # Production domain
+        "https://*.arifamilyassets.com",  # Subdomains
+        "https://erp-sistema.com",  # Fallback domain
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
