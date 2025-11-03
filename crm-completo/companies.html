@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM ARI - Gestión de Empresas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            height: 60px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 60px;
+            width: 250px;
+            height: calc(100vh - 60px);
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .sidebar-menu li {
+            margin: 0;
+        }
+
+        .sidebar-menu a {
+            display: block;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background-color: #34495e;
+            border-left-color: #3498db;
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 60px;
+            padding: 30px;
+        }
+
+        .page-title {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e1e1;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .table {
+                font-size: 14px;
+            }
+
+            .table th,
+            .table td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Gestión de Empresas</h1>
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">A</div>
+            <span id="userName">Admin</span>
+            <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i>📊</i> Dashboard</a></li>
+            <li><a href="companies.html" class="active"><i>🏢</i> Empresas</a></li>
+            <li><a href="employees.html"><i>👥</i> Empleados</a></li>
+            <li><a href="finance.html"><i>💰</i> Finanzas</a></li>
+            <li><a href="projects.html"><i>📋</i> Proyectos</a></li>
+            <li><a href="reports.html"><i>📈</i> Reportes</a></li>
+            <li><a href="calendar.html"><i>📅</i> Calendario</a></li>
+            <li><a href="settings.html"><i>⚙️</i> Configuración</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="page-title">Gestión de Empresas</h1>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar empresas..." onkeyup="searchCompanies()">
+            </div>
+            <button class="btn btn-success" onclick="openModal('addCompanyModal')">
+                ➕ Nueva Empresa
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table class="table" id="companiesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Empresa</th>
+                        <th>Contacto</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="companiesTableBody">
+                    <!-- Los datos se cargarán aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Nueva/Editar Empresa -->
+    <div id="addCompanyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nueva Empresa</h2>
+                <span class="close" onclick="closeModal('addCompanyModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="companyForm">
+                    <input type="hidden" id="companyId">
+                    <div class="form-group">
+                        <label for="companyName">Nombre de la Empresa</label>
+                        <input type="text" id="companyName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactName">Persona de Contacto</label>
+                        <input type="text" id="contactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Teléfono</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Dirección</label>
+                        <textarea id="address" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Estado</label>
+                        <select id="status" required>
+                            <option value="active">Activa</option>
+                            <option value="inactive">Inactiva</option>
+                            <option value="pending">Pendiente</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="saveCompany()">Guardar</button>
+                <button type="button" class="btn" onclick="closeModal('addCompanyModal')" style="background: #6c757d; color: white;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificar login
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+
+        // Mostrar usuario
+        const userName = localStorage.getItem('crmUser') || 'Admin';
+        document.getElementById('userName').textContent = userName;
+        document.getElementById('userAvatar').textContent = userName.charAt(0).toUpperCase();
+
+        // Datos de ejemplo
+        let companies = [
+            {
+                id: 1,
+                name: 'TechCorp S.L.',
+                contact: 'Ana García',
+                email: 'ana@techcorp.com',
+                phone: '+34 912 345 678',
+                address: 'Calle Mayor 123, Madrid',
+                status: 'active'
+            },
+            {
+                id: 2,
+                name: 'Innovate Solutions',
+                contact: 'Carlos Ruiz',
+                email: 'carlos@innovate.com',
+                phone: '+34 934 567 890',
+                address: 'Av. Diagonal 456, Barcelona',
+                status: 'active'
+            },
+            {
+                id: 3,
+                name: 'DataFlow Systems',
+                contact: 'María López',
+                email: 'maria@dataflow.com',
+                phone: '+34 954 321 098',
+                address: 'Plaza España 789, Sevilla',
+                status: 'pending'
+            }
+        ];
+
+        // Cargar tabla
+        function loadCompanies() {
+            const tbody = document.getElementById('companiesTableBody');
+            tbody.innerHTML = '';
+
+            companies.forEach(company => {
+                const statusClass = `status-${company.status}`;
+                const statusText = {
+                    'active': 'Activa',
+                    'inactive': 'Inactiva',
+                    'pending': 'Pendiente'
+                }[company.status];
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${company.id}</td>
+                        <td><strong>${company.name}</strong></td>
+                        <td>${company.contact}</td>
+                        <td>${company.email}</td>
+                        <td>${company.phone}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td class="actions">
+                            <button class="btn btn-primary btn-sm" onclick="editCompany(${company.id})">Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCompany(${company.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Buscar empresas
+        function searchCompanies() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#companiesTableBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.getElementById('companyForm').reset();
+            document.getElementById('companyId').value = '';
+            document.getElementById('modalTitle').textContent = 'Nueva Empresa';
+        }
+
+        // Editar empresa
+        function editCompany(id) {
+            const company = companies.find(c => c.id === id);
+            if (company) {
+                document.getElementById('companyId').value = company.id;
+                document.getElementById('companyName').value = company.name;
+                document.getElementById('contactName').value = company.contact;
+                document.getElementById('email').value = company.email;
+                document.getElementById('phone').value = company.phone;
+                document.getElementById('address').value = company.address;
+                document.getElementById('status').value = company.status;
+                document.getElementById('modalTitle').textContent = 'Editar Empresa';
+                openModal('addCompanyModal');
+            }
+        }
+
+        // Guardar empresa
+        function saveCompany() {
+            const id = document.getElementById('companyId').value;
+            const companyData = {
+                name: document.getElementById('companyName').value,
+                contact: document.getElementById('contactName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                status: document.getElementById('status').value
+            };
+
+            if (id) {
+                // Editar
+                const index = companies.findIndex(c => c.id === parseInt(id));
+                if (index !== -1) {
+                    companies[index] = { ...companies[index], ...companyData };
+                }
+            } else {
+                // Crear nuevo
+                const newId = Math.max(...companies.map(c => c.id)) + 1;
+                companies.push({ id: newId, ...companyData });
+            }
+
+            loadCompanies();
+            closeModal('addCompanyModal');
+            alert('Empresa guardada exitosamente');
+        }
+
+        // Eliminar empresa
+        function deleteCompany(id) {
+            if (confirm('¿Está seguro que desea eliminar esta empresa?')) {
+                companies = companies.filter(c => c.id !== id);
+                loadCompanies();
+                alert('Empresa eliminada exitosamente');
+            }
+        }
+
+        // Logout
+        function logout() {
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('crmUser');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Cargar datos al iniciar
+        loadCompanies();
+    </script>
+</body>
+</html>
