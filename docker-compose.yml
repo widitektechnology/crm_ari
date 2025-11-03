@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: erp_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: erp_system
+      MYSQL_USER: erp_user
+      MYSQL_PASSWORD: erp_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - erp_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis (optional - for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: erp_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - erp_network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: erp_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql://erp_user:erp_password@mysql:3306/erp_system
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=your-production-secret-key
+      - DEBUG=False
+      - CORS_ORIGINS=http://localhost:3000,https://your-frontend-domain.com
+    volumes:
+      - backend_uploads:/app/uploads
+    networks:
+      - erp_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: erp_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    networks:
+      - erp_network
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      timeout: 10s
+      retries: 5
+
+  # Nginx Reverse Proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: erp_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - erp_network
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+networks:
+  erp_network:
+    driver: bridge
