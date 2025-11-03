@@ -1,22 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
+  reactStrictMode: true,
+  swcMinify: true,
   images: {
-    domains: ['localhost', 'api.erp-sistema.com'],
+    domains: ['localhost', 'crm.arifamilyassets.com'],
   },
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://crm.arifamilyassets.com',
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL || 'https://crm.arifamilyassets.com',
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/:path*`,
-      },
-    ]
-  },
+  // Configuración para producción
+  output: 'standalone',
 }
 
 module.exports = nextConfig
