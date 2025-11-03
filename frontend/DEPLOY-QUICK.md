@@ -26,19 +26,33 @@ frontend/
 - Sube TODA la carpeta `frontend` a tu servidor Plesk por FTP/SFTP
 - Ubicación: `/httpdocs/frontend/`
 
-### 2. Configurar Document Root en Plesk
+### 2. 🚨 CRÍTICO: Configurar Document Root en Plesk
 1. Ve a **Plesk > Hosting Settings**
 2. Cambia **Document Root** de `/httpdocs` a `/httpdocs/frontend/build`
 3. Guarda cambios
+
+**IMPORTANTE:** Si `https://crm.arifamilyassets.com/` muestra:
+```
+🚀 Sistema ERP
+Backend: ✅ Conectado
+```
+Significa que Document Root AÚN apunta al backend. Debe mostrar el login del CRM.
 
 ### 3. ¡LISTO! 🎉
 - Visita: `https://crm.arifamilyassets.com/`
 - Usuario: `admin@crm.com`
 - Contraseña: `admin123`
 
-## 🧪 Verificar Despliegue
-- Ve a: `https://crm.arifamilyassets.com/test-deployment.html`
-- Esta página verificará automáticamente que todo funcione
+## 🧪 Verificar Despliegue (PASO A PASO)
+1. **Primero prueba:** `https://crm.arifamilyassets.com/test-simple.html`
+   - Si funciona ✅: Continúa al paso 2
+   - Si da 404 ❌: Revisa Document Root en Plesk
+
+2. **Luego prueba:** `https://crm.arifamilyassets.com/test-deployment.html`
+   - Esta página verificará automáticamente que todo funcione
+
+3. **Finalmente:** `https://crm.arifamilyassets.com/`
+   - Debe cargar el login del CRM
 
 ## ⚡ Si algo no funciona:
 
