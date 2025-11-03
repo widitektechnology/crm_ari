@@ -1,0 +1,29 @@
+ProxyPreserveHost On
+ProxyRequests Off
+
+# Frontend (Next.js) - Puerto 3001
+ProxyPass / http://127.0.0.1:3001/
+ProxyPassReverse / http://127.0.0.1:3001/
+
+# API Backend (FastAPI) - Puerto 8000
+ProxyPass /api/ http://127.0.0.1:8000/api/
+ProxyPassReverse /api/ http://127.0.0.1:8000/api/
+
+# Documentación API
+ProxyPass /docs http://127.0.0.1:8000/docs
+ProxyPassReverse /docs http://127.0.0.1:8000/docs
+
+ProxyPass /openapi.json http://127.0.0.1:8000/openapi.json
+ProxyPassReverse /openapi.json http://127.0.0.1:8000/openapi.json
+
+# Health checks
+ProxyPass /health http://127.0.0.1:8000/health
+ProxyPassReverse /health http://127.0.0.1:8000/health
+
+ProxyPass /status http://127.0.0.1:8000/status
+ProxyPassReverse /status http://127.0.0.1:8000/status
+
+# Headers para CORS
+Header always set Access-Control-Allow-Origin "*"
+Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header always set Access-Control-Allow-Headers "Content-Type, Authorization"
