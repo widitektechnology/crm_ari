@@ -51,26 +51,43 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                🎯 CRM ARI
-              </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Header Premium */}
+      <header className="bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl shadow-lg">
+                <span className="text-xl text-white">🚀</span>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent">
+                  CRM ARI
+                </h1>
+                <p className="text-sm text-gray-600 font-medium">Sistema Empresarial</p>
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">
-                Bienvenido, <strong>{user?.username || 'Usuario'}</strong>
-              </span>
+              <div className="hidden md:flex items-center space-x-2 bg-white/60 rounded-full px-4 py-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-700 font-medium">En línea</span>
+              </div>
+              
+              <div className="flex items-center space-x-3 bg-white/60 rounded-full px-4 py-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-bold text-white">{user?.username?.charAt(0)?.toUpperCase() || 'U'}</span>
+                </div>
+                <span className="text-gray-700 font-medium hidden sm:block">
+                  {user?.username || 'Usuario'}
+                </span>
+              </div>
+              
               <button
                 onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-2 rounded-full text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Cerrar Sesión
+                Salir
               </button>
             </div>
           </div>
