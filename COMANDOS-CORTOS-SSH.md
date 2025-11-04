@@ -63,9 +63,224 @@ echo "✅ Backend: http://localhost:8000"
 
 ---
 
-## 🚀 **EJECUTAR TODO DE UNA VEZ:**
+## 🚀 **LOGIN REAL CON API - COMANDO ACTUALIZADO:**
 ```bash
-cd /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com && cp index.html index.bak 2>/dev/null && echo 'LOGIN SIMPLE CREADO' && echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CRM</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#667eea;min-height:100vh;display:flex;align-items:center;justify-content:center}.login{background:white;padding:30px;border-radius:10px;width:350px}input{width:100%;padding:10px;margin:10px 0;border:1px solid #ddd;border-radius:5px}button{width:100%;padding:12px;background:#667eea;color:white;border:none;border-radius:5px}</style></head><body><div class="login"><h1>CRM ARI</h1><input type="text" id="u" placeholder="Usuario"><input type="password" id="p" placeholder="Contraseña"><button onclick="login()">Login</button><div id="m"></div></div><script>function login(){const user=document.getElementById("u").value,pass=document.getElementById("p").value;user&&pass?fetch("http://localhost:8000/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:user,password:pass})}).then(r=>r.json()).then(d=>{localStorage.setItem("token",d.access_token||"ok"),localStorage.setItem("user",user),document.getElementById("m").innerHTML="✅ Login OK",setTimeout(()=>location.href="dashboard.html",1000)}).catch(e=>{document.getElementById("m").innerHTML="❌ Error"}):document.getElementById("m").innerHTML="❌ Complete campos"}</script></body></html>' > index.html && echo '✅ LISTO!'
+cd /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com && cp index.html index.bak 2>/dev/null && echo 'CREANDO LOGIN REAL...' && cat > index.html << 'LOGINAPI'
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRM ARI - Sistema de Gestión</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .login-container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 15px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+        }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #333; font-size: 2.5em; margin-bottom: 5px; }
+        .logo p { color: #666; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group input { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px solid #e1e1e1; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            transition: border-color 0.3s; 
+        }
+        .form-group input:focus { 
+            outline: none; 
+            border-color: #667eea; 
+        }
+        .btn-login { 
+            width: 100%; 
+            padding: 15px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            transition: transform 0.2s; 
+        }
+        .btn-login:hover { transform: translateY(-2px); }
+        .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+        .message { 
+            margin-top: 20px; 
+            padding: 12px; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-size: 14px; 
+        }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .loading { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .status { 
+            margin-top: 20px; 
+            padding: 10px; 
+            background: #f8f9fa; 
+            border-radius: 5px; 
+            font-size: 12px; 
+            color: #6c757d; 
+            text-align: center; 
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🎯 CRM ARI</h1>
+            <p>Sistema de Gestión Empresarial</p>
+        </div>
+        <form id="loginForm">
+            <div class="form-group">
+                <input type="text" id="username" placeholder="👤 Usuario" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="🔑 Contraseña" required>
+            </div>
+            <button type="submit" class="btn-login" id="loginBtn">
+                🚀 Iniciar Sesión
+            </button>
+        </form>
+        <div id="message"></div>
+        <div class="status">
+            🔗 Backend: localhost:8000<br>
+            💾 Base de datos: MySQL<br>
+            ⚡ Estado: <span id="backendStatus">Verificando...</span>
+        </div>
+    </div>
+    
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const messageDiv = document.getElementById('message');
+        
+        function showMessage(text, type = 'error') {
+            messageDiv.innerHTML = `<div class="message ${type}">${text}</div>`;
+        }
+        
+        // Verificar backend al cargar
+        async function checkBackend() {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                const data = await response.json();
+                document.getElementById('backendStatus').textContent = '✅ Funcionando';
+                document.getElementById('backendStatus').style.color = 'green';
+                console.log('🩺 Backend status:', data);
+            } catch (error) {
+                document.getElementById('backendStatus').textContent = '❌ Sin conexión';
+                document.getElementById('backendStatus').style.color = 'red';
+                console.error('⚠️ Backend no responde:', error);
+            }
+        }
+        
+        async function attemptLogin(username, password) {
+            try {
+                console.log('🔄 Intentando login con backend:', 'http://localhost:8000');
+                
+                const response = await fetch('http://localhost:8000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username.trim(),
+                        password: password
+                    })
+                });
+                
+                console.log('📡 Respuesta del servidor:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Login exitoso:', data);
+                    
+                    // Guardar datos de sesión
+                    localStorage.setItem('authToken', data.access_token || data.token || 'authenticated');
+                    localStorage.setItem('crmUser', username);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('loginTime', new Date().toISOString());
+                    
+                    showMessage('✅ Login exitoso! Redirigiendo al dashboard...', 'success');
+                    
+                    // Redirección después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                    
+                    return { success: true, data: data };
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.detail || errorData.message || `Error ${response.status}`;
+                    console.error('❌ Error de login:', errorMessage);
+                    showMessage(`❌ ${errorMessage}`, 'error');
+                    return { success: false, error: errorMessage };
+                }
+            } catch (error) {
+                console.error('🚨 Error de conexión:', error);
+                showMessage('🚨 Error de conexión al servidor. Verifique que el backend esté funcionando en puerto 8000.', 'error');
+                return { success: false, error: 'Network error' };
+            }
+        }
+        
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+            
+            if (!username || !password) {
+                showMessage('❌ Por favor, complete todos los campos', 'error');
+                return;
+            }
+            
+            // Deshabilitar botón y mostrar loading
+            loginBtn.disabled = true;
+            loginBtn.textContent = '🔄 Iniciando sesión...';
+            showMessage('🔄 Conectando al servidor...', 'loading');
+            
+            try {
+                await attemptLogin(username, password);
+            } finally {
+                // Rehabilitar botón
+                loginBtn.disabled = false;
+                loginBtn.textContent = '🚀 Iniciar Sesión';
+            }
+        });
+        
+        // Verificar si ya hay sesión activa
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            showMessage('ℹ️ Ya hay una sesión activa. Redirigiendo...', 'loading');
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1500);
+        }
+        
+        // Verificar estado del backend al cargar
+        checkBackend();
+    </script>
+</body>
+</html>
+LOGINAPI
+echo "✅ LOGIN REAL CREADO CON API!"
 ```
 
-**¿Probamos con estos comandos cortos?** ⚡
+**¡Ahora tienes el login profesional con conexión completa al backend!** 🚀
