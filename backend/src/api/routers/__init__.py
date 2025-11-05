@@ -7,6 +7,7 @@ from . import ai
 from . import payroll
 from . import finance
 from . import external_api
+from . import mail
 
 __all__ = [
     "companies",
@@ -14,4 +15,5 @@ __all__ = [
     "payroll",
     "finance",
     "external_api"
+    ,"mail"
 ]

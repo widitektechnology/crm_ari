@@ -10,7 +10,7 @@ import logging
 from contextlib import asynccontextmanager
 
 # Import routers
-from .routers import companies, payroll, finance, ai, external_api
+from .routers import companies, payroll, finance, ai, external_api, mail
 from ..infrastructure.database.connection import create_tables, get_db_session
 from ..config.settings import get_settings
 
@@ -88,6 +88,9 @@ app.include_router(payroll.router, prefix="/api/v1/payroll", tags=["Payroll"])
 app.include_router(finance.router, prefix="/api/v1/finance", tags=["Finance"])
 app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI"])
 app.include_router(external_api.router, prefix="/api/v1/integrations", tags=["External APIs"])
+# Mail router: expose under /api so that mail.router (which has prefix="/mail")
+# becomes available at /api/mail/... and matches the frontend baseUrl (/api/mail)
+app.include_router(mail.router, prefix="/api", tags=["Mail"])
 
 
 if __name__ == "__main__":
