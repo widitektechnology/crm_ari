@@ -426,7 +426,7 @@ export class MailAutodiscoveryService {
   }
 
   /**
-   * Prueba la conectividad de una configuración
+   * Prueba la conectividad de una configuración usando el backend
    */
   async testConnection(config: Partial<MailAccount>): Promise<{ success: boolean, error?: string }> {
     if (!config.settings) {
@@ -436,64 +436,33 @@ export class MailAutodiscoveryService {
     console.log('🔍 Probando conectividad IMAP/SMTP...')
 
     try {
-      // Simular prueba de conexión IMAP
-      const imapTest = await this.testIMAPConnection(config.settings.incoming)
-      if (!imapTest.success) {
-        return { success: false, error: `Error IMAP: ${imapTest.error}` }
-      }
+      // Usar el servicio de conexión real
+      const response = await fetch('/api/mail/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          incoming: config.settings.incoming,
+          outgoing: config.settings.outgoing,
+        }),
+      })
 
-      // Simular prueba de conexión SMTP
-      const smtpTest = await this.testSMTPConnection(config.settings.outgoing)
-      if (!smtpTest.success) {
-        return { success: false, error: `Error SMTP: ${smtpTest.error}` }
+      const result = await response.json()
+      
+      if (!response.ok) {
+        return { success: false, error: result.error || 'Error de conexión' }
       }
 
       console.log('✅ Conexión exitosa')
       return { success: true }
     } catch (error) {
+      console.error('Error testing connection:', error)
       return { success: false, error: `Error de conectividad: ${error}` }
     }
   }
 
-  /**
-   * Simula prueba de conexión IMAP
-   */
-  private async testIMAPConnection(config: any): Promise<{ success: boolean, error?: string }> {
-    // Simular latencia de red
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Validaciones básicas
-    if (!config.server || !config.port || !config.username || !config.password) {
-      return { success: false, error: 'Configuración IMAP incompleta' }
-    }
 
-    // Simular respuesta exitosa en la mayoría de casos
-    if (Math.random() > 0.2) { 
-      return { success: true }
-    } else {
-      return { success: false, error: 'No se pudo conectar al servidor IMAP' }
-    }
-  }
-
-  /**
-   * Simula prueba de conexión SMTP
-   */
-  private async testSMTPConnection(config: any): Promise<{ success: boolean, error?: string }> {
-    // Simular latencia de red
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Validaciones básicas
-    if (!config.server || !config.port || !config.username || !config.password) {
-      return { success: false, error: 'Configuración SMTP incompleta' }
-    }
-
-    // Simular respuesta exitosa en la mayoría de casos
-    if (Math.random() > 0.15) {
-      return { success: true }
-    } else {
-      return { success: false, error: 'No se pudo conectar al servidor SMTP' }
-    }
-  }
 
   /**
    * Detecta si el proveedor requiere OAuth2

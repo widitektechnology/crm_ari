@@ -5,6 +5,7 @@ import MailList from './MailList'
 import MailViewer from './MailViewer'
 import MailComposer from './MailComposer'
 import AccountSetup from './AccountSetup'
+import ConnectionStatus from './ConnectionStatus'
 import type { MailMessage, MailComposerData } from '../../types/mail'
 
 interface MailDashboardProps {
@@ -200,13 +201,16 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
     <div className={`h-screen bg-gray-50 flex ${className}`}>
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 space-y-3">
           <button
             onClick={handleNewMessage}
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             ✉️ Nuevo Mensaje
           </button>
+          
+          {/* Estado de conexión */}
+          <ConnectionStatus className="w-full" />
         </div>
         <MailSidebar className="flex-1" />
       </div>

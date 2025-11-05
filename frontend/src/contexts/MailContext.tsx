@@ -353,62 +353,114 @@ export function MailProvider({ children }: MailProviderProps) {
   }, [state.messages, state.currentAccount])
 
   const sendMessage = useCallback(async (messageData: MailComposerData) => {
+    if (!messageData.accountId) {
+      throw new Error('No account specified for sending')
+    }
+
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      // Simular envío
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      console.log('Message sent:', messageData)
+      // Enviar mensaje real via SMTP
+      await mailConnection.sendMessage(messageData.accountId, messageData)
+      
+      console.log('✅ Message sent successfully')
+      
+      // Opcional: recargar mensajes para mostrar el mensaje enviado
+      if (state.currentFolder?.type === 'sent') {
+        await loadMessages()
+      }
     } catch (error) {
       console.error('Error sending message:', error)
       throw error
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [])
+  }, [state.currentFolder?.type, loadMessages])
 
   const markAsRead = useCallback(async (messageId: string, isRead: boolean) => {
+    if (!state.currentAccount) {
+      throw new Error('No account selected')
+    }
+
     try {
+      // Actualizar localmente primero para respuesta inmediata
       dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, message: { isRead } } })
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Sincronizar con el servidor
+      await mailConnection.markAsRead(state.currentAccount.id, messageId, isRead)
     } catch (error) {
       console.error('Error marking message as read:', error)
+      
+      // Revertir el cambio local si el servidor falló
+      dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, message: { isRead: !isRead } } })
       throw error
     }
-  }, [])
+  }, [state.currentAccount])
 
   const markAsStarred = useCallback(async (messageId: string, isStarred: boolean) => {
+    if (!state.currentAccount) {
+      throw new Error('No account selected')
+    }
+
     try {
+      // Actualizar localmente primero para respuesta inmediata
       dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, message: { isStarred } } })
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Sincronizar con el servidor
+      await mailConnection.markAsStarred(state.currentAccount.id, messageId, isStarred)
     } catch (error) {
       console.error('Error starring message:', error)
+      
+      // Revertir el cambio local si el servidor falló
+      dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, message: { isStarred: !isStarred } } })
       throw error
     }
-  }, [])
+  }, [state.currentAccount])
 
   const deleteMessage = useCallback(async (messageId: string) => {
+    if (!state.currentAccount) {
+      throw new Error('No account selected')
+    }
+
     try {
+      // Eliminar localmente primero
       dispatch({ type: 'DELETE_MESSAGE', payload: messageId })
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Eliminar en el servidor
+      await mailConnection.deleteMessage(state.currentAccount.id, messageId, false)  // false = mover a papelera
     } catch (error) {
       console.error('Error deleting message:', error)
+      
+      // En caso de error, recargar mensajes para restaurar el estado
+      await loadMessages()
       throw error
     }
-  }, [])
+  }, [state.currentAccount, loadMessages])
 
   const moveMessage = useCallback(async (messageId: string, folderId: string) => {
+    if (!state.currentAccount) {
+      throw new Error('No account selected')
+    }
+
     try {
+      // Actualizar localmente primero
       dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, message: { folderId } } })
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Mover en el servidor
+      await mailConnection.moveMessage(state.currentAccount.id, messageId, folderId)
+      
+      // Si estamos viendo la carpeta actual, remover el mensaje de la vista
+      const currentMessage = state.messages.find(m => m.id === messageId)
+      if (currentMessage && currentMessage.folderId !== state.currentFolder?.id) {
+        dispatch({ type: 'DELETE_MESSAGE', payload: messageId })
+      }
     } catch (error) {
       console.error('Error moving message:', error)
+      
+      // Recargar mensajes en caso de error
+      await loadMessages()
       throw error
     }
-  }, [])
+  }, [state.currentAccount, state.messages, state.currentFolder?.id, loadMessages])
 
   // Folder management
   const setCurrentFolder = useCallback((folderId: string) => {
@@ -547,63 +599,100 @@ export function MailProvider({ children }: MailProviderProps) {
     }
   }, [])
 
-  // Inicializar carpetas por defecto cuando se selecciona una cuenta
+  // Cargar cuentas registradas al inicializar
   useEffect(() => {
-    if (state.currentAccount && state.folders.length === 0) {
-      const defaultFolders: MailFolder[] = [
-        {
-          id: 'inbox',
-          accountId: state.currentAccount.id,
-          name: 'INBOX',
-          displayName: 'Bandeja de entrada',
-          type: 'inbox',
-          unreadCount: 1,
-          totalCount: 1,
-          isSelectable: true,
-          path: 'INBOX',
-          attributes: []
-        },
-        {
-          id: 'sent',
-          accountId: state.currentAccount.id,
-          name: 'Sent',
-          displayName: 'Enviados',
-          type: 'sent',
-          unreadCount: 0,
-          totalCount: 0,
-          isSelectable: true,
-          path: 'Sent',
-          attributes: ['\\Sent']
-        },
-        {
-          id: 'drafts',
-          accountId: state.currentAccount.id,
-          name: 'Drafts',
-          displayName: 'Borradores',
-          type: 'drafts',
-          unreadCount: 0,
-          totalCount: 0,
-          isSelectable: true,
-          path: 'Drafts',
-          attributes: ['\\Drafts']
-        },
-        {
-          id: 'trash',
-          accountId: state.currentAccount.id,
-          name: 'Trash',
-          displayName: 'Papelera',
-          type: 'trash',
-          unreadCount: 0,
-          totalCount: 0,
-          isSelectable: true,
-          path: 'Trash',
-          attributes: ['\\Trash']
+    const loadAccounts = async () => {
+      try {
+        const accounts = await mailConnection.getAccounts()
+        dispatch({ type: 'SET_ACCOUNTS', payload: accounts })
+        
+        // Seleccionar la primera cuenta por defecto
+        if (accounts.length > 0 && !state.currentAccount) {
+          dispatch({ type: 'SET_CURRENT_ACCOUNT', payload: accounts[0] })
         }
-      ]
-      
-      dispatch({ type: 'SET_FOLDERS', payload: defaultFolders })
-      dispatch({ type: 'SET_CURRENT_FOLDER', payload: defaultFolders[0] })
+      } catch (error) {
+        console.error('Error loading accounts:', error)
+      }
     }
+
+    loadAccounts()
+  }, [state.currentAccount])
+
+  // Cargar carpetas cuando se selecciona una cuenta
+  useEffect(() => {
+    const loadFolders = async () => {
+      if (state.currentAccount && state.folders.length === 0) {
+        try {
+          const folders = await mailConnection.syncFolders(state.currentAccount.id)
+          dispatch({ type: 'SET_FOLDERS', payload: folders })
+          
+          // Seleccionar inbox por defecto
+          const inbox = folders.find(f => f.type === 'inbox')
+          if (inbox) {
+            dispatch({ type: 'SET_CURRENT_FOLDER', payload: inbox })
+          }
+        } catch (error) {
+          console.error('Error loading folders:', error)
+          
+          // Fallback: crear carpetas por defecto si no se pueden cargar
+          const defaultFolders: MailFolder[] = [
+            {
+              id: 'inbox',
+              accountId: state.currentAccount.id,
+              name: 'INBOX',
+              displayName: 'Bandeja de entrada',
+              type: 'inbox',
+              unreadCount: 0,
+              totalCount: 0,
+              isSelectable: true,
+              path: 'INBOX',
+              attributes: []
+            },
+            {
+              id: 'sent',
+              accountId: state.currentAccount.id,
+              name: 'Sent',
+              displayName: 'Enviados',
+              type: 'sent',
+              unreadCount: 0,
+              totalCount: 0,
+              isSelectable: true,
+              path: 'Sent',
+              attributes: ['\\Sent']
+            },
+            {
+              id: 'drafts',
+              accountId: state.currentAccount.id,
+              name: 'Drafts',
+              displayName: 'Borradores',
+              type: 'drafts',
+              unreadCount: 0,
+              totalCount: 0,
+              isSelectable: true,
+              path: 'Drafts',
+              attributes: ['\\Drafts']
+            },
+            {
+              id: 'trash',
+              accountId: state.currentAccount.id,
+              name: 'Trash',
+              displayName: 'Papelera',
+              type: 'trash',
+              unreadCount: 0,
+              totalCount: 0,
+              isSelectable: true,
+              path: 'Trash',
+              attributes: ['\\Trash']
+            }
+          ]
+          
+          dispatch({ type: 'SET_FOLDERS', payload: defaultFolders })
+          dispatch({ type: 'SET_CURRENT_FOLDER', payload: defaultFolders[0] })
+        }
+      }
+    }
+
+    loadFolders()
   }, [state.currentAccount, state.folders.length])
 
   const contextValue: MailContextType = {
