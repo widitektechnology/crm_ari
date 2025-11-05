@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug API Configuration</title>
+</head>
+<body>
+    <h1>API Configuration Debug</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        // Simular la configuración de Vite
+        const VITE_API_BASE_URL = 'https://crm.arifamilyassets.com';
+        const API_BASE_URL = VITE_API_BASE_URL ? `${VITE_API_BASE_URL}/api` : '/api';
+        
+        console.log('VITE_API_BASE_URL:', VITE_API_BASE_URL);
+        console.log('API_BASE_URL:', API_BASE_URL);
+        console.log('Window location:', window.location);
+        
+        document.getElementById('debug-info').innerHTML = `
+            <p><strong>VITE_API_BASE_URL:</strong> ${VITE_API_BASE_URL}</p>
+            <p><strong>API_BASE_URL:</strong> ${API_BASE_URL}</p>
+            <p><strong>Window location:</strong> ${window.location.href}</p>
+            <p><strong>Protocol:</strong> ${window.location.protocol}</p>
+        `;
+        
+        // Hacer una solicitud de prueba
+        fetch(API_BASE_URL + '/health')
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response URL:', response.url);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                document.getElementById('debug-info').innerHTML += `
+                    <p><strong>API Test:</strong> ✅ Success</p>
+                    <p><strong>Response:</strong> ${JSON.stringify(data)}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('API Error:', error);
+                document.getElementById('debug-info').innerHTML += `
+                    <p><strong>API Test:</strong> ❌ Error: ${error.message}</p>
+                `;
+            });
+    </script>
+</body>
+</html>
