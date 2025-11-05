@@ -119,7 +119,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Health check endpoint
+# Health check endpoints
 @app.get("/health", tags=["Health"], summary="Health Check")
 async def health_check():
     """Health check endpoint for monitoring and load balancers"""
@@ -128,6 +128,17 @@ async def health_check():
         "service": "ERP System API",
         "version": "1.0.0",
         "timestamp": "2024-01-15T10:00:00Z"
+    }
+
+@app.get("/api/health", tags=["Health"], summary="API Health Check")
+async def api_health_check():
+    """Health check endpoint for API monitoring"""
+    return {
+        "status": "healthy",
+        "service": "CRM ARI API",
+        "version": "2.0.0",
+        "mail_support": True,
+        "timestamp": "2025-11-05T14:00:00Z"
     }
 
 
