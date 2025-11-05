@@ -15,7 +15,8 @@ from src.api.routers import (
     ai,
     payroll,
     finance,
-    external_api
+    external_api,
+    mail  # ← NUEVO: Router de correo
 )
 
 
@@ -31,10 +32,11 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
-    logger.info("Starting ERP System API...")
+    logger.info("🚀 Starting CRM ARI API Server...")
     logger.info("Initializing database connections...")
     logger.info("Loading AI models...")
     logger.info("Setting up external integrations...")
+    logger.info("📧 Mail endpoints enabled")  # ← NUEVO
     logger.info("ERP System API started successfully")
     
     yield
@@ -48,14 +50,15 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="Sistema ERP Empresarial",
+    title="CRM ARI API",
     description="""
-    Sistema de Planificación de Recursos Empresariales (ERP) modular, escalable y configurable.
+    Complete ERP system with mail integration.
     
     ## Características principales:
     
     * **Arquitectura empresarial**: Implementa patrones Domain Model, Repository, Unit of Work y Service Layer
     * **Gestión de compañías**: Soporte multi-empresa con configuración independiente
+    * **📧 Sistema de correo**: Conectividad IMAP/SMTP real con autodiscovery
     * **Recursos humanos**: Gestión completa de empleados, estructuras salariales y nómina
     * **Finanzas**: Facturación electrónica B2B, gestión contable y reportes financieros
     * **Inteligencia artificial**: Clasificación automática de emails y agente conversacional
@@ -68,8 +71,9 @@ app = FastAPI(
     * **Payroll**: Nómina, estructura salarial y gestión de empleados
     * **Finance**: Facturación, contabilidad y reportes financieros
     * **External API**: Integraciones con APIs externas
+    * **📧 Mail**: Sistema de correo IMAP/SMTP con autodiscovery
     """,
-    version="1.0.0",
+    version="2.0.0",
     contact={
         "name": "Equipo de Desarrollo ERP",
         "email": "dev@erp-sistema.com",
@@ -228,25 +232,41 @@ app.include_router(
     responses={404: {"description": "Integration not found"}}
 )
 
+app.include_router(
+    mail.router,
+    prefix="/api",
+    tags=["📧 Mail System"],
+    responses={404: {"description": "Mail resource not found"}}
+)
+
 
 # Root endpoint
 @app.get("/", tags=["Root"])
 async def root():
     """Root endpoint with API overview"""
     return {
-        "message": "¡Bienvenido al Sistema ERP Empresarial!",
-        "description": "Sistema de Planificación de Recursos Empresariales modular y escalable",
-        "version": "1.0.0",
+        "message": "🎯 CRM ARI API Server",
+        "description": "Complete ERP system with mail integration",
+        "version": "2.0.0",
         "documentation": "/docs",
         "redoc": "/redoc",
         "health": "/health",
         "api_info": "/api/info",
+        "features": [
+            "👥 Companies Management",
+            "💼 Payroll System", 
+            "💰 Finance & Invoicing",
+            "🤖 AI Email Classification",
+            "🔗 External API Integrations",
+            "📧 Real Mail IMAP/SMTP Support"
+        ],
         "modules": {
             "companies": "/api/companies",
             "ai": "/api/ai", 
             "payroll": "/api/payroll",
             "finance": "/api/finance",
-            "external_api": "/api/external-api"
+            "external_api": "/api/external-api",
+            "mail": "/api/mail/health"
         }
     }
 
@@ -290,6 +310,11 @@ async def admin_panel():
                 "name": "Procesamiento de Nómina",
                 "status": "active",
                 "endpoint": "/api/payroll"
+            },
+            {
+                "name": "📧 Sistema de Correo",
+                "status": "active",
+                "endpoint": "/api/mail"
             }
         ],
         "system_stats": {
