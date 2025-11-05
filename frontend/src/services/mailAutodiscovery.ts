@@ -437,7 +437,10 @@ export class MailAutodiscoveryService {
 
     try {
       // Usar el servicio de conexión real
-      const response = await fetch('/api/mail/test-connection', {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/mail` 
+        : '/api/mail'
+      const response = await fetch(`${apiBaseUrl}/test-connection`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

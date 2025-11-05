@@ -1,7 +1,9 @@
 import axios from 'axios'
 
-// Configuración base de la API usando el proxy
-const API_BASE_URL = '/api'
+// Configuración base de la API usando variable de entorno
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+  ? `${import.meta.env.VITE_API_BASE_URL}/api` 
+  : '/api'
 
 // Crear instancia de axios
 const api = axios.create({

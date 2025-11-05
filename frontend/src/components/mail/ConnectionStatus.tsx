@@ -272,7 +272,10 @@ function BackendStatus() {
     const checkBackend = async () => {
       try {
         // Intentar hacer una petición simple al backend
-        const response = await fetch('/api/health', { 
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
+          ? `${import.meta.env.VITE_API_BASE_URL}/api` 
+          : '/api'
+        const response = await fetch(`${apiBaseUrl}/health`, { 
           method: 'GET',
           timeout: 5000 
         } as any)
