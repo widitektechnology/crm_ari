@@ -10,7 +10,7 @@ import logging
 from contextlib import asynccontextmanager
 
 # Import routers
-from .routers import companies, payroll, finance, ai, external_api, mail
+from .routers import companies, payroll, finance, ai, external_api, mail, employees
 from ..infrastructure.database.connection import create_tables, get_db_session
 from ..config.settings import get_settings
 
@@ -82,12 +82,17 @@ async def health_check():
     }
 
 
-# Include routers
-app.include_router(companies.router, prefix="/api/v1/companies", tags=["Companies"])
-app.include_router(payroll.router, prefix="/api/v1/payroll", tags=["Payroll"])
-app.include_router(finance.router, prefix="/api/v1/finance", tags=["Finance"])
-app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI"])
-app.include_router(external_api.router, prefix="/api/v1/integrations", tags=["External APIs"])
+# Include routers - v1 versioned routes (legacy)
+app.include_router(companies.router, prefix="/api/v1/companies", tags=["Companies v1"])
+app.include_router(payroll.router, prefix="/api/v1/payroll", tags=["Payroll v1"])
+app.include_router(finance.router, prefix="/api/v1/finance", tags=["Finance v1"])
+app.include_router(ai.router, prefix="/api/v1/ai", tags=["AI v1"])
+app.include_router(external_api.router, prefix="/api/v1/integrations", tags=["External APIs v1"])
+app.include_router(employees.router, prefix="/api/v1/employees", tags=["Employees v1"])
+
+# Include routers - current API routes (no version)
+app.include_router(companies.router, prefix="/api/companies", tags=["Companies"])
+app.include_router(employees.router, prefix="/api/employees", tags=["Employees"])
 # Mail router: expose under /api so that mail.router (which has prefix="/mail")
 # becomes available at /api/mail/... and matches the frontend baseUrl (/api/mail)
 app.include_router(mail.router, prefix="/api", tags=["Mail"])

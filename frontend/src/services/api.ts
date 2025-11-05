@@ -1,10 +1,10 @@
 import axios from 'axios'
 
 // Configuración base de la API usando variable de entorno
-// En producción el backend expone la versión v1 bajo /api/v1
+// El backend expone los endpoints directamente bajo /api (sin versioning)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1` 
-  : '/api/v1'
+  ? `${import.meta.env.VITE_API_BASE_URL}/api` 
+  : '/api'
 
 // Crear instancia de axios
 const api = axios.create({
