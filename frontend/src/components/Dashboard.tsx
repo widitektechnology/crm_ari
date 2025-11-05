@@ -1,9 +1,34 @@
 import React, { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiService } from '../services/api'
 
+interface NavButtonProps {
+  to: string
+  active: boolean
+  icon: string
+  text: string
+}
+
+const NavButton: React.FC<NavButtonProps> = ({ to, active, icon, text }) => {
+  return (
+    <Link
+      to={to}
+      className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+        active 
+          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+      }`}
+    >
+      <span className="text-lg">{icon}</span>
+      <span>{text}</span>
+    </Link>
+  )
+}
+
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth()
+  const location = useLocation()
   const [stats, setStats] = useState({
     companies: 0,
     employees: 0,
@@ -94,28 +119,34 @@ const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8 h-12 items-center">
-            <a
-              href="/dashboard"
-              className="text-blue-600 border-b-2 border-blue-600 px-1 py-1 text-sm font-medium"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/companies"
-              className="text-gray-500 hover:text-gray-700 px-1 py-1 text-sm font-medium"
-            >
-              Empresas
-            </a>
-            <a
-              href="/employees"
-              className="text-gray-500 hover:text-gray-700 px-1 py-1 text-sm font-medium"
-            >
-              Empleados
-            </a>
+      {/* Navigation mejorada */}
+      <nav className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-white/20">
+        <div className="max-w-7xl mx-auto px-6 py-3">
+          <div className="flex space-x-8 items-center">
+            <NavButton 
+              to="/dashboard" 
+              active={location.pathname === '/dashboard'}
+              icon="📊"
+              text="Dashboard"
+            />
+            <NavButton 
+              to="/companies" 
+              active={location.pathname === '/companies'}
+              icon="🏢"
+              text="Empresas"
+            />
+            <NavButton 
+              to="/employees" 
+              active={location.pathname === '/employees'}
+              icon="👥"
+              text="Empleados"
+            />
+            <NavButton 
+              to="/mail" 
+              active={location.pathname === '/mail'}
+              icon="📧"
+              text="Correo"
+            />
           </div>
         </div>
       </nav>
@@ -130,49 +161,81 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards Interactivas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+          <Link to="/companies" className="group">
+            <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl shadow-lg">
+                    <span className="text-2xl">🏢</span>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-semibold text-gray-600">Empresas</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{stats.companies}</p>
+                  </div>
+                </div>
+                <div className="text-blue-400 group-hover:text-blue-600 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Empresas</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.companies}</p>
+              <div className="mt-4">
+                <p className="text-xs text-gray-500">Click para gestionar empresas</p>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                </svg>
+          <Link to="/employees" className="group">
+            <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-green-400 to-green-600 rounded-xl shadow-lg">
+                    <span className="text-2xl">👥</span>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-semibold text-gray-600">Empleados</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">{stats.employees}</p>
+                  </div>
+                </div>
+                <div className="text-green-400 group-hover:text-green-600 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Empleados</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.employees}</p>
+              <div className="mt-4">
+                <p className="text-xs text-gray-500">Click para gestionar empleados</p>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+          <Link to="/mail" className="group">
+            <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="p-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl shadow-lg">
+                    <span className="text-2xl">�</span>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-semibold text-gray-600">Sistema de Correo</p>
+                    <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+                      Nuevo
+                    </p>
+                  </div>
+                </div>
+                <div className="text-purple-400 group-hover:text-purple-600 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Sistema</p>
-                <p className="text-2xl font-bold text-green-600">Activo</p>
+              <div className="mt-4">
+                <p className="text-xs text-gray-500">Click para acceder al sistema de correo</p>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Quick Actions */}
@@ -209,15 +272,15 @@ const Dashboard: React.FC = () => {
               <span className="text-sm font-medium text-purple-600">Actualizar</span>
             </button>
 
-            <button
-              onClick={() => window.open('/api/health', '_blank')}
-              className="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            <a
+              href="/mail"
+              className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
             >
-              <svg className="h-8 w-8 text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg className="h-8 w-8 text-purple-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span className="text-sm font-medium text-gray-600">Estado API</span>
-            </button>
+              <span className="text-sm font-medium text-purple-600">Sistema de Correo</span>
+            </a>
           </div>
         </div>
       </main>

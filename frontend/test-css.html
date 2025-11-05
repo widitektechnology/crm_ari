@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 CRM ARI - Test CSS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob { animation: blob 7s infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+    </style>
+</head>
+<body>
+    <!-- TEST DE DISEÑO CRM ARI -->
+    <div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 relative overflow-hidden">
+        <!-- Fondo animado -->
+        <div class="absolute inset-0 w-full h-full">
+            <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+            <div class="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+            <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        </div>
+
+        <!-- Contenido -->
+        <div class="relative flex items-center justify-center min-h-screen">
+            <div class="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-10 w-full max-w-md border border-white/20">
+                <!-- Logo -->
+                <div class="text-center mb-10">
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl mb-6 shadow-lg">
+                        <span class="text-3xl">🚀</span>
+                    </div>
+                    <h1 class="text-4xl font-bold text-white mb-3">CRM ARI</h1>
+                    <p class="text-blue-100 text-lg font-medium">Sistema Empresarial Moderno</p>
+                    <div class="w-24 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto mt-4"></div>
+                </div>
+
+                <!-- Estado -->
+                <div class="flex items-center justify-center mb-6">
+                    <div class="flex items-center px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-green-300">
+                        <span class="text-sm font-medium">✅ CSS Funcionando</span>
+                    </div>
+                </div>
+
+                <!-- Formulario de prueba -->
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-blue-100">Email de Prueba</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-blue-200">👤</span>
+                            </div>
+                            <input
+                                type="email"
+                                value="admin@crm.com"
+                                class="w-full pl-10 pr-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-blue-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                                placeholder="admin@crm.com"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-blue-100">Contraseña</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-blue-200">🔑</span>
+                            </div>
+                            <input
+                                type="password"
+                                value="admin123"
+                                class="w-full pl-10 pr-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-blue-200 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                                placeholder="admin123"
+                                readonly
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onclick="alert('¡CSS funcionando perfectamente! 🎉\\n\\nAhora el CRM se ve hermoso.')"
+                        class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-transparent transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                    >
+                        🎯 Probar Diseño
+                    </button>
+                </div>
+
+                <!-- Información -->
+                <div class="mt-8 text-center">
+                    <p class="text-blue-100 text-sm opacity-80">
+                        Si ves este diseño, ¡el CSS funciona perfectamente!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

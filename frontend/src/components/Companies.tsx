@@ -1,99 +1,86 @@
 import React from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import Layout from './Layout'
 
 const Companies: React.FC = () => {
-  const { logout } = useAuth()
-
-  const handleLogout = () => {
-    logout()
-    window.location.href = '/login'
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                🎯 CRM ARI
-              </h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Cerrar Sesión
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-8 h-12 items-center">
-            <a
-              href="/dashboard"
-              className="text-gray-500 hover:text-gray-700 px-1 py-1 text-sm font-medium"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/companies"
-              className="text-blue-600 border-b-2 border-blue-600 px-1 py-1 text-sm font-medium"
-            >
-              Empresas
-            </a>
-            <a
-              href="/employees"
-              className="text-gray-500 hover:text-gray-700 px-1 py-1 text-sm font-medium"
-            >
-              Empleados
-            </a>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Empresas</h2>
-          <p className="mt-2 text-gray-600">
-            Gestiona las empresas de tu sistema
-          </p>
-        </div>
-
-        {/* Coming Soon */}
-        <div className="bg-white rounded-lg shadow p-8 text-center">
-          <div className="text-6xl mb-4">🏢</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+    <Layout title="Gestión de Empresas">
+      {/* Contenido de empresas */}
+      <div className="space-y-6">
+        {/* Tarjeta de Coming Soon */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-8 text-center border border-white/20">
+          <div className="text-6xl mb-6">🏢</div>
+          <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             Módulo de Empresas
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-8 text-lg">
             Esta sección estará disponible próximamente. Aquí podrás gestionar todas las empresas del sistema.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-500">
-            <div className="flex items-center justify-center space-x-2">
-              <span>✅</span>
-              <span>Crear empresas</span>
+          
+          {/* Features grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+            <div className="flex flex-col items-center space-y-2 p-4 bg-blue-50 rounded-xl">
+              <span className="text-2xl">✅</span>
+              <span className="font-semibold text-blue-800">Crear Empresas</span>
+              <span className="text-sm text-blue-600">Registro completo</span>
             </div>
-            <div className="flex items-center justify-center space-x-2">
-              <span>✅</span>
-              <span>Editar información</span>
+            <div className="flex flex-col items-center space-y-2 p-4 bg-green-50 rounded-xl">
+              <span className="text-2xl">✅</span>
+              <span className="font-semibold text-green-800">Editar Información</span>
+              <span className="text-sm text-green-600">Datos actualizables</span>
             </div>
-            <div className="flex items-center justify-center space-x-2">
-              <span>✅</span>
-              <span>Gestionar empleados</span>
+            <div className="flex flex-col items-center space-y-2 p-4 bg-purple-50 rounded-xl">
+              <span className="text-2xl">✅</span>
+              <span className="font-semibold text-purple-800">Gestionar Empleados</span>
+              <span className="text-sm text-purple-600">Asignación directa</span>
+            </div>
+          </div>
+
+          {/* CTA Button */}
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full text-sm font-semibold shadow-lg inline-block">
+            🚧 Próximamente Disponible
+          </div>
+        </div>
+
+        {/* Stats placeholder */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg p-6 border border-white/20">
+            <div className="flex items-center">
+              <div className="p-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl">
+                <span className="text-xl text-white">🏢</span>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-semibold text-gray-600">Total Empresas</p>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg p-6 border border-white/20">
+            <div className="flex items-center">
+              <div className="p-3 bg-gradient-to-br from-green-400 to-green-600 rounded-xl">
+                <span className="text-xl text-white">✅</span>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-semibold text-gray-600">Activas</p>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-lg p-6 border border-white/20">
+            <div className="flex items-center">
+              <div className="p-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl">
+                <span className="text-xl text-white">👥</span>
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-semibold text-gray-600">Con Empleados</p>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+              </div>
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   )
 }
 
