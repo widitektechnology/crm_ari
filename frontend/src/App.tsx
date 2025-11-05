@@ -5,7 +5,6 @@ import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import Companies from './components/Companies'
 import Employees from './components/Employees'
-import MailDashboard from './components/mail/MailDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -40,14 +39,7 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/mail"
-                element={
-                  <ProtectedRoute>
-                    <MailDashboard />
-                  </ProtectedRoute>
-                }
-              />
+
               <Route path="/" element={<Navigate to="/login" replace />} />
             </Routes>
           </div>

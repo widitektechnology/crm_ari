@@ -231,7 +231,7 @@ const Dashboard: React.FC = () => {
             </div>
           </Link>
 
-          <Link to="/mail" className="group">
+          <button onClick={() => setCurrentView('mail')} className="group text-left w-full">
             <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -255,7 +255,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-xs text-gray-500">Click para acceder al sistema de correo</p>
               </div>
             </div>
-          </Link>
+          </button>
         </div>
 
         {/* Quick Actions */}
@@ -292,15 +292,15 @@ const Dashboard: React.FC = () => {
               <span className="text-sm font-medium text-purple-600">Actualizar</span>
             </button>
 
-            <a
-              href="/mail"
+            <button
+              onClick={() => setCurrentView('mail')}
               className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
             >
               <svg className="h-8 w-8 text-purple-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <span className="text-sm font-medium text-purple-600">Sistema de Correo</span>
-            </a>
+            </button>
           </div>
         </div>
           </>

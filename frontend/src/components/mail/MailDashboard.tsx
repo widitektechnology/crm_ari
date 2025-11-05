@@ -198,7 +198,7 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
   }
 
   return (
-    <div className={`bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ${className}`} style={{ height: 'calc(100vh - 200px)' }}>
+    <div className={`bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ${className}`} style={{ height: '700px' }}>
       <div className="flex h-full">
         {/* Sidebar */}
         <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
