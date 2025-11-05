@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiService } from '../services/api'
+import MailDashboard from './mail/MailDashboard'
 
 interface NavButtonProps {
   to: string
@@ -29,6 +30,7 @@ const NavButton: React.FC<NavButtonProps> = ({ to, active, icon, text }) => {
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [currentView, setCurrentView] = useState('overview') // overview, mail, companies, employees
   const [stats, setStats] = useState({
     companies: 0,
     employees: 0,
@@ -123,12 +125,17 @@ const Dashboard: React.FC = () => {
       <nav className="bg-white/80 backdrop-blur-lg shadow-sm border-b border-white/20">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex space-x-8 items-center">
-            <NavButton 
-              to="/dashboard" 
-              active={location.pathname === '/dashboard'}
-              icon="📊"
-              text="Dashboard"
-            />
+            <button
+              onClick={() => setCurrentView('overview')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                currentView === 'overview' 
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <span className="text-lg">📊</span>
+              <span>Dashboard</span>
+            </button>
             <NavButton 
               to="/companies" 
               active={location.pathname === '/companies'}
@@ -141,25 +148,38 @@ const Dashboard: React.FC = () => {
               icon="👥"
               text="Empleados"
             />
-            <NavButton 
-              to="/mail" 
-              active={location.pathname === '/mail'}
-              icon="📧"
-              text="Correo"
-            />
+            <button
+              onClick={() => setCurrentView('mail')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                currentView === 'mail' 
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <span className="text-lg">📧</span>
+              <span>Correo</span>
+            </button>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* Welcome Message */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-          <p className="mt-2 text-gray-600">
-            Resumen general de tu sistema de gestión empresarial
-          </p>
-        </div>
+        {currentView === 'mail' ? (
+          <div className="mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Correo</h2>
+            <p className="text-gray-600 mb-6">Gestiona tus cuentas de correo electrónico</p>
+            <MailDashboard className="w-full" />
+          </div>
+        ) : (
+          <>
+            {/* Welcome Message */}
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
+              <p className="mt-2 text-gray-600">
+                Resumen general de tu sistema de gestión empresarial
+              </p>
+            </div>
 
         {/* Stats Cards Interactivas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -283,6 +303,8 @@ const Dashboard: React.FC = () => {
             </a>
           </div>
         </div>
+          </>
+        )}
       </main>
     </div>
   )

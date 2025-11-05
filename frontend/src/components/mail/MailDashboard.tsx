@@ -198,9 +198,10 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
   }
 
   return (
-    <div className={`h-screen bg-gray-50 flex ${className}`}>
-      {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <div className={`bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ${className}`} style={{ height: 'calc(100vh - 200px)' }}>
+      <div className="flex h-full">
+        {/* Sidebar */}
+        <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-200 space-y-3">
           <button
             onClick={handleNewMessage}
@@ -286,6 +287,7 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }

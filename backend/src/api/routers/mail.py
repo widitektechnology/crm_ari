@@ -236,7 +236,26 @@ async def create_account(account: MailAccount):
 async def get_accounts():
     """Obtener todas las cuentas registradas"""
     # En un sistema real se obtendría desde la base de datos
-    return []
+    # Para demo, retornamos una cuenta de ejemplo
+    timestamp = datetime.now().isoformat()
+    
+    demo_accounts = [
+        {
+            "id": "demo-account-1",
+            "name": "Cuenta Demo",
+            "email": "demo@crm.local",
+            "provider": "demo",
+            "isActive": True,
+            "isDefault": True,
+            "unreadCount": random.randint(5, 25),
+            "totalCount": random.randint(50, 200),
+            "lastSync": timestamp,
+            "status": "connected",
+            "folders": 4
+        }
+    ]
+    
+    return demo_accounts
 
 @router.get("/accounts/{account_id}/folders")
 async def get_folders(account_id: str):
