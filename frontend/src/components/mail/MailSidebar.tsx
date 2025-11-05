@@ -207,7 +207,9 @@ export default function MailSidebar({ className = '' }: MailSidebarProps) {
             <div className="flex justify-between">
               <span>Última sincronización:</span>
               <span className="font-medium">
-                {currentAccount.lastSync.toLocaleTimeString()}
+                {currentAccount.lastSync
+                  ? new Date(currentAccount.lastSync).toLocaleTimeString()
+                  : '—'}
               </span>
             </div>
           </div>
