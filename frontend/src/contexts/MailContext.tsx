@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
+import { mailConnection } from '../services/mailConnection'
 import type { 
   MailContextType, 
   MailAccount, 
@@ -202,20 +203,28 @@ export function MailProvider({ children }: MailProviderProps) {
   const addAccount = useCallback(async (accountData: Omit<MailAccount, 'id' | 'created_at'>) => {
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      const newAccount: MailAccount = {
-        ...accountData,
-        id: Date.now().toString(), // En producción usar UUID
-        created_at: new Date()
-      }
-      
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Registrar cuenta en el backend
+      const newAccount = await mailConnection.registerAccount(accountData)
       
       dispatch({ type: 'ADD_ACCOUNT', payload: newAccount })
       
       // Si no hay cuenta por defecto, hacer esta la por defecto
       if (state.accounts.length === 0) {
         dispatch({ type: 'SET_CURRENT_ACCOUNT', payload: newAccount })
+        
+        // Cargar carpetas automáticamente
+        try {
+          const folders = await mailConnection.syncFolders(newAccount.id)
+          dispatch({ type: 'SET_FOLDERS', payload: folders })
+          
+          // Seleccionar inbox por defecto
+          const inbox = folders.find(f => f.type === 'inbox')
+          if (inbox) {
+            dispatch({ type: 'SET_CURRENT_FOLDER', payload: inbox })
+          }
+        } catch (error) {
+          console.error('Error loading folders:', error)
+        }
       }
     } catch (error) {
       console.error('Error adding account:', error)
@@ -228,10 +237,10 @@ export function MailProvider({ children }: MailProviderProps) {
   const updateAccount = useCallback(async (id: string, accountData: Partial<MailAccount>) => {
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Actualizar cuenta en el backend
+      const updatedAccount = await mailConnection.updateAccount(id, accountData)
       
-      dispatch({ type: 'UPDATE_ACCOUNT', payload: { id, account: accountData } })
+      dispatch({ type: 'UPDATE_ACCOUNT', payload: { id, account: updatedAccount } })
     } catch (error) {
       console.error('Error updating account:', error)
       throw error
@@ -243,8 +252,8 @@ export function MailProvider({ children }: MailProviderProps) {
   const deleteAccount = useCallback(async (id: string) => {
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Eliminar cuenta del backend
+      await mailConnection.deleteAccount(id)
       
       dispatch({ type: 'DELETE_ACCOUNT', payload: id })
     } catch (error) {
@@ -262,58 +271,86 @@ export function MailProvider({ children }: MailProviderProps) {
 
   // Message management
   const loadMessages = useCallback(async (folderId?: string, accountId?: string) => {
+    const targetAccountId = accountId || state.currentAccount?.id
+    const targetFolderId = folderId || state.currentFolder?.id
+    
+    if (!targetAccountId || !targetFolderId) {
+      console.warn('No account or folder selected')
+      return
+    }
+
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
-      // Simular datos de ejemplo
-      const mockMessages: MailMessage[] = [
-        {
-          id: '1',
-          accountId: accountId || state.currentAccount?.id || '1',
-          messageId: 'msg-1',
-          subject: 'Bienvenido al sistema de correo',
-          from: { name: 'Sistema CRM', email: 'sistema@crm.com' },
-          to: [{ name: 'Usuario', email: state.currentAccount?.email || 'user@example.com' }],
-          body: {
-            text: 'Este es un mensaje de bienvenida al nuevo sistema de correo.',
-            html: '<p>Este es un mensaje de <strong>bienvenida</strong> al nuevo sistema de correo.</p>'
-          },
-          attachments: [],
-          isRead: false,
-          isStarred: false,
-          isFlagged: false,
-          isImportant: true,
-          labels: ['bienvenida'],
-          folderId: folderId || 'inbox',
-          receivedAt: new Date(),
-          size: 1024,
-          hasAttachments: false,
-          snippet: 'Este es un mensaje de bienvenida al nuevo sistema de correo.'
-        }
-      ]
+      // Cargar mensajes reales desde el servidor
+      const messages = await mailConnection.syncMessages(targetAccountId, targetFolderId, 50, 0)
       
-      // Simular llamada a API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      dispatch({ type: 'SET_MESSAGES', payload: mockMessages })
+      dispatch({ type: 'SET_MESSAGES', payload: messages })
     } catch (error) {
       console.error('Error loading messages:', error)
-      throw error
+      
+      // Fallback: mostrar mensaje de error
+      const errorMessage: MailMessage = {
+        id: 'error-1',
+        accountId: targetAccountId,
+        messageId: 'error-msg',
+        subject: 'Error de conexión',
+        from: { name: 'Sistema', email: 'sistema@crm.com' },
+        to: [{ name: 'Usuario', email: state.currentAccount?.email || 'user@example.com' }],
+        body: {
+          text: `No se pudieron cargar los mensajes: ${error}`,
+          html: `<p><strong>Error:</strong> No se pudieron cargar los mensajes.<br><br><em>${error}</em></p>`
+        },
+        attachments: [],
+        isRead: true,
+        isStarred: false,
+        isFlagged: true,
+        isImportant: false,
+        labels: ['error'],
+        folderId: targetFolderId,
+        receivedAt: new Date(),
+        size: 512,
+        hasAttachments: false,
+        snippet: `No se pudieron cargar los mensajes: ${error}`
+      }
+      
+      dispatch({ type: 'SET_MESSAGES', payload: [errorMessage] })
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }, [state.currentAccount?.id, state.currentAccount?.email])
+  }, [state.currentAccount?.id, state.currentAccount?.email, state.currentFolder?.id])
 
   const getMessage = useCallback(async (messageId: string): Promise<MailMessage> => {
-    const message = state.messages.find(msg => msg.id === messageId)
-    if (message) {
-      dispatch({ type: 'SET_CURRENT_MESSAGE', payload: message })
-      return message
-    }
+    // Primero buscar en caché local
+    const cachedMessage = state.messages.find(msg => msg.id === messageId)
     
-    // Simular llamada a API si no está en caché
-    await new Promise(resolve => setTimeout(resolve, 500))
-    throw new Error('Message not found')
-  }, [state.messages])
+    if (!state.currentAccount) {
+      throw new Error('No account selected')
+    }
+
+    try {
+      // Obtener mensaje completo del servidor
+      const fullMessage = await mailConnection.getMessage(state.currentAccount.id, messageId)
+      
+      dispatch({ type: 'SET_CURRENT_MESSAGE', payload: fullMessage })
+      
+      // Actualizar en la lista local si existe
+      if (cachedMessage) {
+        dispatch({ type: 'UPDATE_MESSAGE', payload: { id: messageId, message: fullMessage } })
+      }
+      
+      return fullMessage
+    } catch (error) {
+      console.error('Error fetching message:', error)
+      
+      // Usar mensaje en caché si está disponible
+      if (cachedMessage) {
+        dispatch({ type: 'SET_CURRENT_MESSAGE', payload: cachedMessage })
+        return cachedMessage
+      }
+      
+      throw new Error('Message not found')
+    }
+  }, [state.messages, state.currentAccount])
 
   const sendMessage = useCallback(async (messageData: MailComposerData) => {
     dispatch({ type: 'SET_LOADING', payload: true })

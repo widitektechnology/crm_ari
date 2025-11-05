@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMail } from '../../contexts/MailContext'
-import { detectProvider, generateAutoConfig, validateAccountConfig } from '../../config/mailProviders'
+import { detectProvider, validateAccountConfig } from '../../config/mailProviders'
+import { mailAutodiscovery } from '../../services/mailAutodiscovery'
 import type { AccountSetupProps, MailAccount } from '../../types/mail'
 
 export default function AccountSetup({ onAccountAdded, onCancel, initialData }: AccountSetupProps) {
@@ -43,7 +44,7 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
     }
   }, [initialData])
 
-  const handleBasicInfoSubmit = (e: React.FormEvent) => {
+  const handleBasicInfoSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrors([])
 
@@ -62,50 +63,70 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
       return
     }
 
-    // Intentar autoconfiguración
-    const autoConfig = generateAutoConfig(formData.email, formData.name)
+    setIsLoading(true)
     
-    if (autoConfig) {
-      setFormData(prev => ({
-        ...prev,
-        ...autoConfig,
-        settings: {
-          incoming: {
-            ...autoConfig.settings!.incoming,
-            username: formData.email || '',
-            password: ''
-          },
-          outgoing: {
-            ...autoConfig.settings!.outgoing,
-            username: formData.email || '',
-            password: ''
-          }
+    try {
+      // Verificar cache primero
+      const cachedConfig = mailAutodiscovery.getCachedConfig(formData.email, formData.name)
+      
+      if (cachedConfig.success && cachedConfig.config) {
+        console.log('✅ Configuración encontrada en cache')
+        setFormData(prev => ({ ...prev, ...cachedConfig.config }))
+        setStep('manual')
+        return
+      }
+
+      // Intentar autodiscovery avanzado
+      console.log('🔍 Iniciando autodiscovery avanzado...')
+      const discoveryResult = await mailAutodiscovery.discoverMailConfig(formData.email, formData.name)
+      
+      if (discoveryResult.success && discoveryResult.config) {
+        console.log(`✅ Configuración encontrada via ${discoveryResult.method}`)
+        setFormData(prev => ({ ...prev, ...discoveryResult.config }))
+        
+        // Detectar si requiere OAuth2
+        const oauthInfo = mailAutodiscovery.detectOAuth2Requirement(formData.email)
+        if (oauthInfo.requiresOAuth) {
+          setErrors([`⚠️ ${oauthInfo.provider} requiere autenticación OAuth2. Por ahora, usa una contraseña de aplicación.`])
         }
-      }))
-      setStep('manual')
-    } else {
-      // Si no se puede autoconfigurar, ir a configuración manual
-      setFormData(prev => ({
-        ...prev,
-        provider: 'imap',
-        settings: {
-          incoming: {
-            server: '',
-            port: 993,
-            ssl: true,
-            username: formData.email || '',
-            password: ''
-          },
-          outgoing: {
-            server: '',
-            port: 587,
-            ssl: true,
-            username: formData.email || '',
-            password: ''
+        
+        setStep('manual')
+      } else {
+        // Fallback: configuración manual básica
+        console.log('⚠️ No se pudo autoconfigurar, usando configuración manual')
+        setFormData(prev => ({
+          ...prev,
+          provider: 'imap',
+          settings: {
+            incoming: {
+              server: '',
+              port: 993,
+              ssl: true,
+              username: formData.email || '',
+              password: ''
+            },
+            outgoing: {
+              server: '',
+              port: 587,
+              ssl: true,
+              username: formData.email || '',
+              password: ''
+            }
           }
+        }))
+        
+        if (discoveryResult.error) {
+          setErrors([discoveryResult.error])
         }
-      }))
+        
+        setStep('manual')
+      }
+    } catch (error) {
+      console.error('Error durante autodiscovery:', error)
+      setErrors(['Error durante la detección automática. Procede con configuración manual.'])
       setStep('manual')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -123,13 +144,27 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
     setIsLoading(true)
 
     try {
-      // Simular prueba de conexión
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      // Probar conectividad real
+      console.log('🔍 Probando conectividad IMAP/SMTP...')
+      const connectionTest = await mailAutodiscovery.testConnection(formData)
       
-      // Simular que la conexión fue exitosa
+      if (!connectionTest.success) {
+        setErrors([connectionTest.error || 'Error al conectar con el servidor'])
+        setStep('manual')
+        return
+      }
+
+      console.log('✅ Conexión exitosa, agregando cuenta...')
+      
+      // Agregar cuenta al contexto
       await addAccount(formData as Omit<MailAccount, 'id' | 'created_at'>)
+      
+      // Cachear configuración exitosa para futuros usuarios
+      mailAutodiscovery.cacheSuccessfulConfig(formData.email || '', formData)
+      
       onAccountAdded(formData as MailAccount)
     } catch (error) {
+      console.error('Error durante configuración:', error)
       setErrors(['Error al conectar con el servidor. Verifica la configuración.'])
       setStep('manual')
     } finally {
@@ -139,19 +174,52 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
 
   const getProviderInfo = () => {
     const provider = detectProvider(formData.email || '')
+    const oauthInfo = mailAutodiscovery.detectOAuth2Requirement(formData.email || '')
+    
     if (provider) {
       return (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">{provider.icon}</span>
-            <span className="font-medium text-blue-900">{provider.name}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-lg">{provider.icon}</span>
+              <span className="font-medium text-blue-900">{provider.name}</span>
+            </div>
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              ✅ Auto-detectado
+            </span>
           </div>
-          <p className="text-sm text-blue-700 mt-1">
-            Configuración detectada automáticamente
+          <div className="mt-2 space-y-1">
+            <p className="text-sm text-blue-700">
+              📧 IMAP: {provider.incoming.server}:{provider.incoming.port}
+            </p>
+            <p className="text-sm text-blue-700">
+              📤 SMTP: {provider.outgoing.server}:{provider.outgoing.port}
+            </p>
+            {oauthInfo.requiresOAuth && (
+              <p className="text-xs text-orange-700 bg-orange-50 rounded px-2 py-1 mt-2">
+                ⚠️ Requiere OAuth2 - Usa contraseña de aplicación
+              </p>
+            )}
+          </div>
+        </div>
+      )
+    }
+    
+    // Mostrar información de autodiscovery si no se detectó proveedor conocido
+    if (formData.email && step === 'manual') {
+      return (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-lg">🔍</span>
+            <span className="font-medium text-yellow-900">Configuración personalizada</span>
+          </div>
+          <p className="text-sm text-yellow-700 mt-1">
+            No se pudo detectar automáticamente. Verifica la configuración manual.
           </p>
         </div>
       )
     }
+    
     return null
   }
 
@@ -162,8 +230,55 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
         <h3 className="text-lg font-medium text-gray-900 mb-2">
           Probando conexión...
         </h3>
-        <p className="text-gray-600">
-          Verificando la configuración del servidor
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-pulse w-2 h-2 bg-blue-600 rounded-full"></div>
+            <span>Verificando servidor IMAP</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-pulse w-2 h-2 bg-green-600 rounded-full" style={{ animationDelay: '0.5s' }}></div>
+            <span>Verificando servidor SMTP</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-pulse w-2 h-2 bg-purple-600 rounded-full" style={{ animationDelay: '1s' }}></div>
+            <span>Validando credenciales</span>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-4">
+          Esto puede tomar unos segundos...
+        </p>
+      </div>
+    )
+  }
+
+  // Mostrar progreso de autodiscovery durante la configuración básica
+  if (isLoading && step === 'basic') {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          🔍 Detectando configuración automáticamente
+        </h3>
+        <div className="space-y-2 text-sm text-gray-600">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-pulse w-2 h-2 bg-blue-600 rounded-full"></div>
+            <span>Consultando base de datos de proveedores</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-pulse w-2 h-2 bg-green-600 rounded-full" style={{ animationDelay: '0.3s' }}></div>
+            <span>Verificando DNS SRV records</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-pulse w-2 h-2 bg-purple-600 rounded-full" style={{ animationDelay: '0.6s' }}></div>
+            <span>Probando Microsoft Autodiscover</span>
+          </div>
+          <div className="flex items-center justify-center space-x-2">
+            <div className="animate-pulse w-2 h-2 bg-orange-600 rounded-full" style={{ animationDelay: '0.9s' }}></div>
+            <span>Consultando Mozilla ISPDB</span>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-4">
+          Intentando múltiples métodos de autodiscovery...
         </p>
       </div>
     )
