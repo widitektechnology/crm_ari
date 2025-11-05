@@ -1,0 +1,21 @@
+# Comandos para actualizar backend de producción
+# Ejecuta estos comandos desde PowerShell en Windows
+
+# 1. Subir main.py actualizado (con endpoints de correo)
+scp backend/src/api/main.py root@ns31792975:/var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/backend/src/api/
+
+# 2. Subir router de correo
+scp backend/src/api/routers/mail.py root@ns31792975:/var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/backend/src/api/routers/
+
+# 3. Subir __init__.py actualizado de routers (incluye import de mail)
+scp backend/src/api/routers/__init__.py root@ns31792975:/var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/backend/src/api/routers/
+
+# 4. Ejecutar script de actualización en el servidor
+ssh root@ns31792975 "cd /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/backend && ./update-backend.sh"
+
+# 5. Verificar que los endpoints estén disponibles
+curl https://crm.arifamilyassets.com/api/health
+curl https://crm.arifamilyassets.com/api/mail/health
+
+# 6. Una vez verificado el backend, subir el frontend compilado
+# rsync -avz frontend/dist/ root@ns31792975:/var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/frontend/dist/
