@@ -3,7 +3,7 @@ ERP System - Configuration Module
 Manages application configuration and environment variables
 """
 from typing import Optional, List
-from pydantic import Field
+from pydantic import Field, ConfigDict
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -16,6 +16,8 @@ class DatabaseSettings(BaseSettings):
     password: str = Field(default="", env="DB_PASSWORD")
     database: str = Field(default="erp_system", env="DB_DATABASE")
     
+    model_config = ConfigDict(extra="allow")
+    
     @property
     def connection_string(self) -> str:
         return f"mysql+mysqlconnector://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
@@ -27,12 +29,16 @@ class SecuritySettings(BaseSettings):
     algorithm: str = Field(default="HS256", env="ALGORITHM")
     access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     
+    model_config = ConfigDict(extra="allow")
+    
     
 class ExternalAPISettings(BaseSettings):
     """External API configuration"""
     max_retries: int = Field(default=3, env="API_MAX_RETRIES")
     timeout_seconds: int = Field(default=30, env="API_TIMEOUT")
     backoff_factor: float = Field(default=1.0, env="API_BACKOFF_FACTOR")
+    
+    model_config = ConfigDict(extra="allow")
 
 
 class AISettings(BaseSettings):
@@ -43,6 +49,8 @@ class AISettings(BaseSettings):
         default="Responde el correo en nombre de Joel Araujo, utiliza un lenguaje amigable y poco técnico",
         env="AI_AGENT_SYSTEM_PROMPT"
     )
+    
+    model_config = ConfigDict(extra="allow")
 
 
 class Settings(BaseSettings):
@@ -60,9 +68,11 @@ class Settings(BaseSettings):
     # Multi-company support
     default_company_id: Optional[int] = Field(default=None, env="DEFAULT_COMPANY_ID")
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="allow"  # Permite campos extra del archivo .env
+    )
 
 
 @lru_cache()
