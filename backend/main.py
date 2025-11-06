@@ -118,32 +118,37 @@ app = FastAPI(
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    openapi_schema = {
-        "openapi": "3.0.2",
-        "info": {
-            "title": app.title,
-            "version": app.version,
-            "description": app.description,
-            "contact": app.contact,
-            "license": app.license_info,
-        },
-        "servers": [
-            {"url": "https://crm.arifamilyassets.com", "description": "Production server"},
-            {"url": "http://localhost:8000", "description": "Development server"}
-        ],
-    }
     
     # Get paths from FastAPI
     from fastapi.openapi.utils import get_openapi
-    schema = get_openapi(
+    openapi_schema = get_openapi(
         title=app.title,
         version=app.version,
         description=app.description,
         routes=app.routes,
     )
     
-    # Merge with our custom schema
-    openapi_schema.update(schema)
+    # Ensure OpenAPI version is set correctly
+    openapi_schema["openapi"] = "3.0.2"
+    
+    # Add custom server information
+    openapi_schema["servers"] = [
+        {"url": "https://crm.arifamilyassets.com", "description": "Production server"},
+        {"url": "http://localhost:8000", "description": "Development server"}
+    ]
+    
+    # Ensure info section is complete
+    if "info" not in openapi_schema:
+        openapi_schema["info"] = {}
+    
+    openapi_schema["info"].update({
+        "title": app.title,
+        "version": app.version,
+        "description": app.description,
+        "contact": app.contact,
+        "license": app.license_info,
+    })
+    
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
