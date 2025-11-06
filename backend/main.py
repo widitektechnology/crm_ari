@@ -1,7 +1,8 @@
 """
-Main FastAPI Application
-Entry point for the ERP system API
+Main FastAPI Application with Database Integration
+Entry point for the CRM ARI system API
 """
+
 from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -10,6 +11,18 @@ from contextlib import asynccontextmanager
 import uvicorn
 import logging
 import secrets
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Database imports
+from src.database.connection import test_connection, engine
+from src.database.models import init_db, Base
+
+# Services
+from src.services.auth import AuthService, get_current_user
 
 # Import all routers
 from src.api.routers import (
@@ -18,8 +31,12 @@ from src.api.routers import (
     payroll,
     finance,
     external_api,
-    mail  # ← NUEVO: Router de correo
+    mail
 )
+
+# Import new routers with database integration
+from src.api.routers.auth import router as auth_router
+from src.api.routers.users import router as users_router
 
 
 # Configure logging
@@ -35,19 +52,40 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
     logger.info("🚀 Starting CRM ARI API Server...")
-    logger.info("Initializing database connections...")
+    
+    # Test database connection
+    logger.info("Testing database connection...")
+    if not test_connection():
+        logger.error("❌ Database connection failed!")
+        raise Exception("Database connection failed")
+    logger.info("✅ Database connection successful")
+    
+    # Initialize database
+    logger.info("Initializing database...")
+    try:
+        # Create tables if they don't exist
+        Base.metadata.create_all(bind=engine)
+        
+        # Initialize with default data
+        init_db()
+        logger.info("✅ Database initialized successfully")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {e}")
+        raise
+    
     logger.info("Loading AI models...")
     logger.info("Setting up external integrations...")
-    logger.info("📧 Mail endpoints enabled")  # ← NUEVO
-    logger.info("ERP System API started successfully")
+    logger.info("📧 Mail endpoints enabled")
+    logger.info("🔐 Authentication system enabled")
+    logger.info("✅ CRM ARI API started successfully")
     
     yield
     
     # Shutdown
-    logger.info("Shutting down ERP System API...")
+    logger.info("Shutting down CRM ARI API...")
     logger.info("Closing database connections...")
     logger.info("Cleaning up resources...")
-    logger.info("ERP System API shut down successfully")
+    logger.info("✅ CRM ARI API shut down successfully")
 
 
 # Security configuration for docs
@@ -71,255 +109,134 @@ def get_current_docs_user(credentials: HTTPBasicCredentials = Depends(security))
 
 # Create FastAPI application
 app = FastAPI(
-    title="CRM ARI API",
-    description="""
-    Complete ERP system with mail integration.
-    
-    ## 🔐 Documentación Protegida
-    
-    **Usuario:** admin  
-    **Contraseña:** crm2025@docs
-    
-    ## Características principales:
-    
-    * **Arquitectura empresarial**: Implementa patrones Domain Model, Repository, Unit of Work y Service Layer
-    * **Gestión de compañías**: Soporte multi-empresa con configuración independiente
-    * **📧 Sistema de correo**: Conectividad IMAP/SMTP real con autodiscovery
-    * **Recursos humanos**: Gestión completa de empleados, estructuras salariales y nómina
-    * **Finanzas**: Facturación electrónica B2B, gestión contable y reportes financieros
-    * **Inteligencia artificial**: Clasificación automática de emails y agente conversacional
-    * **Integraciones**: Conectores API flexibles para sistemas externos
-    
-    ## Módulos disponibles:
-    
-    * **Companies**: Gestión de empresas y configuración multi-tenant
-    * **AI**: Servicios de inteligencia artificial y automatización
-    * **Payroll**: Nómina, estructura salarial y gestión de empleados
-    * **Finance**: Facturación, contabilidad y reportes financieros
-    * **External API**: Integraciones con APIs externas
-    * **📧 Mail**: Sistema de correo IMAP/SMTP con autodiscovery
-    """,
+    title="CRM ARI Family Assets",
+    description="Sistema de gestión integral para ARI Family Assets con autenticación, correo electrónico y base de datos MySQL",
     version="2.0.0",
-    contact={
-        "name": "Equipo de Desarrollo ERP",
-        "email": "dev@erp-sistema.com",
-    },
-    license_info={
-        "name": "MIT License",
-        "url": "https://opensource.org/licenses/MIT",
-    },
-    docs_url=None,  # Deshabilitar docs por defecto
-    redoc_url=None,  # Deshabilitar redoc por defecto
-    openapi_url=None,  # Deshabilitar openapi por defecto
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url=None,  # Disable default docs
+    redoc_url=None,  # Disable default redoc
+    openapi_url=None  # Disable default openapi
 )
 
-# Custom OpenAPI schema generation
+# Custom OpenAPI schema
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     
-    # Get paths from FastAPI
     from fastapi.openapi.utils import get_openapi
+    
     openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
+        title="CRM ARI Family Assets API",
+        version="2.0.0",
+        description="Sistema de gestión integral con autenticación, correo electrónico y base de datos MySQL",
         routes=app.routes,
     )
     
     # Ensure OpenAPI version is set correctly
     openapi_schema["openapi"] = "3.0.2"
     
-    # Add custom server information
-    openapi_schema["servers"] = [
-        {"url": "https://crm.arifamilyassets.com", "description": "Production server"},
-        {"url": "http://localhost:8000", "description": "Development server"}
-    ]
-    
-    # Ensure info section is complete
-    if "info" not in openapi_schema:
-        openapi_schema["info"] = {}
-    
-    openapi_schema["info"].update({
-        "title": app.title,
-        "version": app.version,
-        "description": app.description,
-        "contact": app.contact,
-        "license": app.license_info,
-    })
+    # Add authentication schemes
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        },
+        "BasicAuth": {
+            "type": "http",
+            "scheme": "basic"
+        }
+    }
     
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
-app.openapi = custom_openapi
+# CORS configuration
+origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,https://crm.arifamilyassets.com").split(",")
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js development server
-        "http://localhost:3001",  # Alternative port
-        "https://crm.arifamilyassets.com",  # Production domain
-        "https://*.arifamilyassets.com",  # Subdomains
-        "https://erp-sistema.com",  # Fallback domain
-    ],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# Global exception handler
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler for unhandled errors"""
-    logger.error(f"Unhandled exception in {request.method} {request.url}: {str(exc)}", exc_info=True)
-    
+# Error handlers
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions"""
     return JSONResponse(
-        status_code=500,
+        status_code=exc.status_code,
         content={
-            "error": "Internal server error",
-            "message": "An unexpected error occurred. Please try again later.",
-            "request_id": getattr(request.state, "request_id", "unknown"),
-            "path": str(request.url.path),
-            "method": request.method
+            "error": {
+                "message": exc.detail,
+                "status_code": exc.status_code,
+                "path": request.url.path
+            }
         }
     )
 
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle general exceptions"""
+    logger.error(f"Unhandled exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "message": "Internal server error",
+                "status_code": 500,
+                "path": request.url.path
+            }
+        }
+    )
+
+# Custom middleware for logging
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all requests"""
+    import time
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    
+    logger.info(
+        f"{request.method} {request.url.path} - "
+        f"Status: {response.status_code} - "
+        f"Time: {process_time:.4f}s"
+    )
+    
+    return response
+
 
 # Health check endpoints
-@app.get("/health", tags=["Health"], summary="Health Check")
+@app.get("/health")
 async def health_check():
-    """Health check endpoint for monitoring and load balancers"""
+    """Health check endpoint"""
+    db_status = "ok" if test_connection() else "error"
     return {
-        "status": "healthy",
-        "service": "ERP System API",
-        "version": "1.0.0",
-        "timestamp": "2024-01-15T10:00:00Z"
-    }
-
-@app.get("/api/health", tags=["Health"], summary="API Health Check")
-async def api_health_check():
-    """Health check endpoint for API monitoring"""
-    return {
-        "status": "healthy",
+        "status": "ok",
         "service": "CRM ARI API",
         "version": "2.0.0",
-        "mail_support": True,
-        "timestamp": "2025-11-05T14:00:00Z"
+        "database": db_status,
+        "timestamp": "2025-11-06T14:00:00Z"
     }
 
 
-# API info endpoint
-@app.get("/api/info", tags=["API Info"], summary="API Information")
-async def api_info():
-    """Get API information and available endpoints"""
-    return {
-        "name": "Sistema ERP Empresarial",
-        "version": "1.0.0",
-        "description": "Sistema de Planificación de Recursos Empresariales modular y escalable",
-        "modules": {
-            "companies": {
-                "description": "Gestión de empresas y configuración multi-tenant",
-                "endpoints": [
-                    "GET /api/companies - Lista de empresas",
-                    "POST /api/companies - Crear empresa",
-                    "GET /api/companies/{id} - Detalle de empresa",
-                    "PUT /api/companies/{id} - Actualizar empresa",
-                    "DELETE /api/companies/{id} - Eliminar empresa"
-                ]
-            },
-            "ai": {
-                "description": "Servicios de inteligencia artificial y automatización",
-                "endpoints": [
-                    "POST /api/ai/emails/classify - Clasificar emails",
-                    "POST /api/ai/chat/message - Mensaje al agente conversacional",
-                    "GET /api/ai/chat/history/{session_id} - Historial de conversación"
-                ]
-            },
-            "payroll": {
-                "description": "Nómina, estructura salarial y gestión de empleados",
-                "endpoints": [
-                    "GET /api/payroll/employees - Lista de empleados",
-                    "POST /api/payroll/employees - Crear empleado",
-                    "GET /api/payroll/salary-structures - Estructuras salariales",
-                    "POST /api/payroll/calculate - Calcular nómina"
-                ]
-            },
-            "finance": {
-                "description": "Facturación, contabilidad y reportes financieros",
-                "endpoints": [
-                    "GET /api/finance/invoices - Lista de facturas",
-                    "POST /api/finance/invoices - Crear factura",
-                    "GET /api/finance/reports/income - Reporte de ingresos",
-                    "POST /api/finance/electronic-invoice - Factura electrónica"
-                ]
-            },
-            "external_api": {
-                "description": "Integraciones con APIs externas",
-                "endpoints": [
-                    "POST /api/external-api/execute - Ejecutar petición personalizada",
-                    "GET /api/external-api/integrations - Lista de integraciones",
-                    "POST /api/external-api/integrations - Registrar integración"
-                ]
-            }
-        },
-        "features": [
-            "Arquitectura empresarial con patrones Domain Model, Repository, Unit of Work",
-            "Soporte multi-empresa y multi-tenant",
-            "Inteligencia artificial integrada",
-            "Facturação eletrônica B2B",
-            "Integraciones API flexibles",
-            "Documentación automática con OpenAPI/Swagger"
-        ]
-    }
+# Include routers
+app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
+app.include_router(users_router, prefix="/api/users", tags=["users"])
+app.include_router(companies.router, prefix="/api/companies", tags=["companies"])
+app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
+app.include_router(payroll.router, prefix="/api/payroll", tags=["payroll"])
+app.include_router(finance.router, prefix="/api/finance", tags=["finance"])
+app.include_router(external_api.router, prefix="/api/external", tags=["external"])
+app.include_router(mail.router, prefix="/api/mail", tags=["mail"])
 
 
-# Include routers with prefixes
-app.include_router(
-    companies.router,
-    prefix="/api/companies",
-    tags=["Companies"],
-    responses={404: {"description": "Company not found"}}
-)
-
-app.include_router(
-    ai.router,
-    prefix="/api/ai",
-    tags=["Artificial Intelligence"],
-    responses={404: {"description": "AI service not found"}}
-)
-
-app.include_router(
-    payroll.router,
-    prefix="/api/payroll",
-    tags=["Payroll & HR"],
-    responses={404: {"description": "Payroll resource not found"}}
-)
-
-app.include_router(
-    finance.router,
-    prefix="/api/finance",
-    tags=["Finance"],
-    responses={404: {"description": "Finance resource not found"}}
-)
-
-app.include_router(
-    external_api.router,
-    prefix="/api/external-api",
-    tags=["External API Integration"],
-    responses={404: {"description": "Integration not found"}}
-)
-
-app.include_router(
-    mail.router,
-    prefix="/api",
-    tags=["📧 Mail System"],
-    responses={404: {"description": "Mail resource not found"}}
-)
-
-
+# Protected documentation endpoints
 # Protected documentation endpoints
 @app.get("/docs", include_in_schema=False)
 async def get_documentation(username: str = Depends(get_current_docs_user)):
@@ -327,9 +244,8 @@ async def get_documentation(username: str = Depends(get_current_docs_user)):
     from fastapi.openapi.docs import get_swagger_ui_html
     return get_swagger_ui_html(
         openapi_url="/openapi.json",
-        title=f"{app.title} - Documentation",
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui.css",
+        title="CRM ARI API Docs",
+        swagger_favicon_url="https://fastapi.tiangolo.com/img/favicon.png"
     )
 
 @app.get("/redoc", include_in_schema=False)
@@ -338,124 +254,28 @@ async def get_redoc_documentation(username: str = Depends(get_current_docs_user)
     from fastapi.openapi.docs import get_redoc_html
     return get_redoc_html(
         openapi_url="/openapi.json",
-        title=f"{app.title} - ReDoc",
-        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.0.0/bundles/redoc.standalone.js",
+        title="CRM ARI API Docs"
     )
 
 @app.get("/openapi.json", include_in_schema=False)
-async def get_openapi_protected(username: str = Depends(get_current_docs_user)):
-    """Protected OpenAPI JSON schema"""
+async def get_openapi_endpoint(username: str = Depends(get_current_docs_user)):
+    """Protected OpenAPI schema"""
     return custom_openapi()
 
 # Root endpoint
-@app.get("/", tags=["Root"])
+@app.get("/")
 async def root():
-    """Root endpoint with API overview"""
+    """Root endpoint"""
     return {
-        "message": "🎯 CRM ARI API Server",
-        "description": "Complete ERP system with mail integration",
+        "message": "CRM ARI Family Assets API",
         "version": "2.0.0",
+        "status": "operational",
         "documentation": "/docs",
-        "redoc": "/redoc",
-        "health": "/health",
-        "api_info": "/api/info",
-        "features": [
-            "👥 Companies Management",
-            "💼 Payroll System", 
-            "💰 Finance & Invoicing",
-            "🤖 AI Email Classification",
-            "🔗 External API Integrations",
-            "📧 Real Mail IMAP/SMTP Support"
-        ],
-        "modules": {
-            "companies": "/api/companies",
-            "ai": "/api/ai", 
-            "payroll": "/api/payroll",
-            "finance": "/api/finance",
-            "external_api": "/api/external-api",
-            "mail": "/api/mail/health"
-        }
+        "health": "/health"
     }
 
 
-# Additional endpoints for frontend integration
-@app.get("/admin")
-async def admin_panel():
-    """Panel de Administración ERP"""
-    return {
-        "message": "Panel de Administración ERP",
-        "version": "1.0.0",
-        "system_name": "Sistema ERP Empresarial",
-        "modules": [
-            {
-                "name": "Gestión de Empleados y Nómina", 
-                "status": "active",
-                "endpoint": "/api/companies/employees"
-            },
-            {
-                "name": "Finanzas y Facturación",
-                "status": "active", 
-                "endpoint": "/api/finance"
-            },
-            {
-                "name": "Inteligencia Artificial",
-                "status": "active",
-                "endpoint": "/api/ai"
-            },
-            {
-                "name": "APIs Externas",
-                "status": "active",
-                "endpoint": "/api/external-api"
-            },
-            {
-                "name": "Procesamiento de Nómina",
-                "status": "active",
-                "endpoint": "/api/payroll"
-            },
-            {
-                "name": "📧 Sistema de Correo",
-                "status": "active",
-                "endpoint": "/api/mail"
-            }
-        ],
-        "system_stats": {
-            "status": "operational",
-            "uptime": "99.9%",
-            "total_employees": 2,
-            "total_companies": 1,
-            "system_health": "excellent",
-            "database_status": "connected",
-            "ai_models_loaded": True
-        },
-        "quick_actions": [
-            {
-                "name": "Ver Empleados",
-                "url": "/api/companies/1/employees",
-                "method": "GET"
-            },
-            {
-                "name": "Procesar Nómina",
-                "url": "/api/payroll/process",
-                "method": "POST"
-            },
-            {
-                "name": "Generar Factura",
-                "url": "/api/finance/invoices",
-                "method": "POST"
-            },
-            {
-                "name": "Consulta IA",
-                "url": "/api/ai/chat",
-                "method": "POST"
-            }
-        ],
-        "documentation": {
-            "api_docs": "/docs",
-            "redoc": "/redoc",
-            "openapi_json": "/openapi.json",
-            "health_check": "/health"
-        }
-    }
+
 
 
 if __name__ == "__main__":
