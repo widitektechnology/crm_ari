@@ -167,8 +167,20 @@ const Dashboard: React.FC = () => {
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {currentView === 'mail' ? (
           <div className="mb-4">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Correo</h2>
-            <p className="text-gray-600 mb-6">Gestiona tus cuentas de correo electrónico</p>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Sistema de Correo</h2>
+                <p className="text-gray-600">Gestiona tus cuentas de correo electrónico integradas con el CRM</p>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setCurrentView('overview')}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  ← Volver al Dashboard
+                </button>
+              </div>
+            </div>
             <MailDashboard className="w-full" />
           </div>
         ) : (

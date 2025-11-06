@@ -173,19 +173,24 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
 
   if (showAccountSetup) {
     return (
-      <div className={`h-screen bg-gradient-to-br from-blue-50 to-indigo-100 ${className}`}>
-        <div className="flex items-center justify-center h-full">
-          <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full mx-4">
+      <div className={`bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ${className}`} style={{ height: '700px' }}>
+        <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-50 to-indigo-50">
+          <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full mx-4 border border-gray-100">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-2xl text-white">📧</span>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Bienvenido al Sistema de Correo
+                Configurar Sistema de Correo
               </h1>
               <p className="text-gray-600">
-                Configura tu primera cuenta de correo para comenzar
+                Agrega tu primera cuenta de correo para empezar a gestionar tus mensajes
               </p>
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-700">
+                  <span className="font-medium">💡 Tip:</span> Soportamos Gmail, Outlook, Yahoo y otros proveedores IMAP/SMTP
+                </p>
+              </div>
             </div>
             <AccountSetup
               onAccountAdded={handleAccountAdded}
