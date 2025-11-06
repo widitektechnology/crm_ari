@@ -2,12 +2,14 @@
 Main FastAPI Application
 Entry point for the ERP system API
 """
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from contextlib import asynccontextmanager
 import uvicorn
 import logging
+import secrets
 
 # Import all routers
 from src.api.routers import (
@@ -48,11 +50,35 @@ async def lifespan(app: FastAPI):
     logger.info("ERP System API shut down successfully")
 
 
+# Security configuration for docs
+security = HTTPBasic()
+
+# Credentials for docs access
+DOCS_USERNAME = "admin"
+DOCS_PASSWORD = "crm2025@docs"
+
+def get_current_docs_user(credentials: HTTPBasicCredentials = Depends(security)):
+    """Authenticate user for docs access"""
+    is_correct_username = secrets.compare_digest(credentials.username, DOCS_USERNAME)
+    is_correct_password = secrets.compare_digest(credentials.password, DOCS_PASSWORD)
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials for documentation access",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
 # Create FastAPI application
 app = FastAPI(
     title="CRM ARI API",
     description="""
     Complete ERP system with mail integration.
+    
+    ## 🔐 Documentación Protegida
+    
+    **Usuario:** admin  
+    **Contraseña:** crm2025@docs
     
     ## Características principales:
     
@@ -82,6 +108,9 @@ app = FastAPI(
         "name": "MIT License",
         "url": "https://opensource.org/licenses/MIT",
     },
+    docs_url=None,  # Deshabilitar docs por defecto
+    redoc_url=None,  # Deshabilitar redoc por defecto
+    openapi_url=None,  # Deshabilitar openapi por defecto
     lifespan=lifespan
 )
 
@@ -251,6 +280,33 @@ app.include_router(
 )
 
 
+# Protected documentation endpoints
+@app.get("/docs", include_in_schema=False)
+async def get_documentation(username: str = Depends(get_current_docs_user)):
+    """Protected Swagger UI documentation"""
+    from fastapi.openapi.docs import get_swagger_ui_html
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title=f"{app.title} - Documentation",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui.css",
+    )
+
+@app.get("/redoc", include_in_schema=False)
+async def get_redoc_documentation(username: str = Depends(get_current_docs_user)):
+    """Protected ReDoc documentation"""
+    from fastapi.openapi.docs import get_redoc_html
+    return get_redoc_html(
+        openapi_url="/openapi.json",
+        title=f"{app.title} - ReDoc",
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.0.0/bundles/redoc.standalone.js",
+    )
+
+@app.get("/openapi.json", include_in_schema=False)
+async def get_openapi_protected(username: str = Depends(get_current_docs_user)):
+    """Protected OpenAPI JSON schema"""
+    return app.openapi()
+
 # Root endpoint
 @app.get("/", tags=["Root"])
 async def root():
@@ -283,12 +339,6 @@ async def root():
 
 
 # Additional endpoints for frontend integration
-@app.get("/openapi.json", include_in_schema=False)
-async def get_openapi():
-    """Endpoint to serve OpenAPI JSON schema for /docs"""
-    return app.openapi()
-
-
 @app.get("/admin")
 async def admin_panel():
     """Panel de Administración ERP"""
