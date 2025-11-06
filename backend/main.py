@@ -114,6 +114,41 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Custom OpenAPI schema generation
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = {
+        "openapi": "3.0.2",
+        "info": {
+            "title": app.title,
+            "version": app.version,
+            "description": app.description,
+            "contact": app.contact,
+            "license": app.license_info,
+        },
+        "servers": [
+            {"url": "https://crm.arifamilyassets.com", "description": "Production server"},
+            {"url": "http://localhost:8000", "description": "Development server"}
+        ],
+    }
+    
+    # Get paths from FastAPI
+    from fastapi.openapi.utils import get_openapi
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    
+    # Merge with our custom schema
+    openapi_schema.update(schema)
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -305,7 +340,7 @@ async def get_redoc_documentation(username: str = Depends(get_current_docs_user)
 @app.get("/openapi.json", include_in_schema=False)
 async def get_openapi_protected(username: str = Depends(get_current_docs_user)):
     """Protected OpenAPI JSON schema"""
-    return app.openapi()
+    return custom_openapi()
 
 # Root endpoint
 @app.get("/", tags=["Root"])
