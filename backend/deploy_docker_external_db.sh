@@ -124,13 +124,32 @@ test_mysql_connection() {
     fi
 }
 
-# Construir y deployar contenedores
+# Construir y deploy contenedores
 deploy_containers() {
     print_status "Construyendo y deploying contenedores..."
     
-    # Detener contenedores existentes
-    print_status "Deteniendo contenedores existentes..."
-    docker-compose -f docker-compose.external-db.yml --env-file .env.docker down 2>/dev/null || true
+    # Detener backend actual en puerto 8000
+    print_status "Deteniendo backend actual en puerto 8000..."
+    PROCESSES=$(lsof -ti :8000 2>/dev/null || true)
+    if [ ! -z "$PROCESSES" ]; then
+        print_warning "Deteniendo procesos en puerto 8000..."
+        for PID in $PROCESSES; do
+            kill -TERM $PID 2>/dev/null || true
+        done
+        sleep 3
+        # Forzar si es necesario
+        REMAINING=$(lsof -ti :8000 2>/dev/null || true)
+        if [ ! -z "$REMAINING" ]; then
+            for PID in $REMAINING; do
+                kill -KILL $PID 2>/dev/null || true
+            done
+        fi
+        print_success "Procesos en puerto 8000 detenidos"
+    fi
+    
+    # Detener contenedores Docker existentes
+    print_status "Deteniendo contenedores Docker existentes..."
+    docker-compose -f docker-compose.external-db.yml down 2>/dev/null || true
     
     # Construir imágenes
     print_status "Construyendo imagen del backend..."
