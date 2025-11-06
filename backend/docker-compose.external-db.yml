@@ -14,8 +14,8 @@ services:
       # Database Configuration - MySQL externo
       - DB_HOST=host.docker.internal  # Para conectar a MySQL en el host
       - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - DB_USERNAME=crm_user
+      - DB_PASSWORD=${MYSQL_PASSWORD}
       - DB_DATABASE=crm_ari
       - DB_CHARSET=utf8mb4
       
@@ -51,22 +51,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Para Linux
 
-  # Frontend
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
-    container_name: crm_ari_frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_APP_NAME=CRM ARI Family Assets
-    networks:
-      - crm_network
-    depends_on:
-      - backend
+
 
 volumes:
   backend_uploads:

@@ -65,12 +65,11 @@ setup_env() {
     if [ ! -f ".env.docker" ]; then
         print_warning "Archivo .env.docker no encontrado. Creando..."
         
-        echo "🔐 Por favor ingresa la contraseña de MySQL:"
-        read -s MYSQL_PASSWORD
-        
-        cat > .env.docker << EOF
+echo "🔐 Por favor ingresa la contraseña de MySQL (crm_user):"
+read -s MYSQL_PASSWORD        cat > .env.docker << EOF
 # Variables de entorno para Docker Compose
-MYSQL_ROOT_PASSWORD=$MYSQL_PASSWORD
+# Variables de entorno
+export MYSQL_PASSWORD="$MYSQL_PASSWORD"
 
 # Configuración de red
 DOCKER_NETWORK=crm_network
