@@ -49,11 +49,12 @@ def test_basic_connection():
             print("❌ No se pudo conectar a MySQL")
             return False
             
-    except Error as e:
-        print(f"❌ Error MySQL: {e}")
-        return False
     except Exception as e:
-        print(f"❌ Error: {e}")
+        if 'mysql.connector' in str(e) or 'mysql' in str(e):
+            print(f"❌ Error MySQL: {e}")
+            print("💡 Ejecuta primero: ./setup_plesk.sh para instalar dependencias")
+        else:
+            print(f"❌ Error: {e}")
         return False
     finally:
         if 'connection' in locals() and connection.is_connected():

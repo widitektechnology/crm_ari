@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Backend API - Conecta a MySQL externo
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crm_ari_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database Configuration - MySQL externo
+      - DB_HOST=host.docker.internal  # Para conectar a MySQL en el host
+      - DB_PORT=3306
+      - DB_USERNAME=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - DB_DATABASE=crm_ari
+      - DB_CHARSET=utf8mb4
+      
+      # Security Configuration
+      - SECRET_KEY=crm-ari-super-secret-key-2025-production-ready
+      - JWT_SECRET_KEY=crm_ari_jwt_secret_key_2025_change_in_production
+      - JWT_ALGORITHM=HS256
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=480
+      - BCRYPT_ROUNDS=12
+      
+      # Application Configuration
+      - APP_NAME=CRM ARI Family Assets
+      - APP_VERSION=2.0.0
+      - DEBUG=false
+      
+      # CORS Configuration
+      - CORS_ORIGINS=https://crm.arifamilyassets.com,http://localhost:3000
+      
+      # AI Configuration
+      - AI_MODEL_PATH=/app/models
+      - AI_CLASSIFICATION_THRESHOLD=0.7
+      - AI_AGENT_SYSTEM_PROMPT=Responde el correo en nombre de Joel Araujo, utiliza un lenguaje amigable y poco técnico
+      
+      # Mail Configuration
+      - MAIL_SYNC_INTERVAL=15
+      - MAIL_MAX_ATTACHMENT_SIZE=25
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    networks:
+      - crm_network
+    # Removemos depends_on de mysql ya que está externo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Para Linux
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crm_ari_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_APP_NAME=CRM ARI Family Assets
+    networks:
+      - crm_network
+    depends_on:
+      - backend
+
+volumes:
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
+
+networks:
+  crm_network:
+    driver: bridge
