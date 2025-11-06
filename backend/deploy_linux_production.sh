@@ -15,12 +15,12 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m'
 
-# Variables
-PROJECT_DIR="/var/www/crm_ari"
+# Variables - Plesk Structure
+PROJECT_DIR="/var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com"
 BACKEND_DIR="$PROJECT_DIR/backend"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 SERVICE_NAME="crm-ari-backend"
-NGINX_CONFIG="/etc/nginx/sites-available/crm.arifamilyassets.com"
+NGINX_CONFIG="/var/www/vhosts/system/arifamilyassets.com/conf/nginx.conf"
 
 print_header() {
     echo -e "${PURPLE}"
