@@ -2,7 +2,8 @@
 Database Models (ORM)
 SQLAlchemy models for database tables
 """
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, Decimal, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, ForeignKey, JSON
+from sqlalchemy.types import DECIMAL as Decimal
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .connection import Base

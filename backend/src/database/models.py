@@ -3,7 +3,8 @@ Database configuration and models for CRM ARI
 """
 
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, Decimal, Enum, JSON, ForeignKey, Index
+from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, Enum, JSON, ForeignKey, Index
+from sqlalchemy.types import DECIMAL as Decimal
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
