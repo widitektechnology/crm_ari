@@ -88,6 +88,13 @@ EOF
 test_mysql_connection() {
     print_status "Verificando conexión a MySQL externo..."
     
+    # Verificar si estamos en el directorio backend
+    if [ ! -f "main.py" ] || [ ! -f "Dockerfile" ]; then
+        print_error "Debes ejecutar este script desde el directorio backend/"
+        print_error "Ubicación correcta: /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com/backend/"
+        exit 1
+    fi
+    
     # Obtener contraseña del .env.docker
     source .env.docker
     
@@ -98,6 +105,14 @@ test_mysql_connection() {
         # Verificar que la base de datos crm_ari existe
         if mysql -u root -p$MYSQL_ROOT_PASSWORD -h localhost -e "USE crm_ari;" &> /dev/null; then
             print_success "Base de datos crm_ari encontrada"
+            
+            # Verificar tablas principales
+            TABLES=$(mysql -u root -p$MYSQL_ROOT_PASSWORD -h localhost -D crm_ari -e "SHOW TABLES;" 2>/dev/null | wc -l)
+            if [ $TABLES -gt 5 ]; then
+                print_success "Tablas de la base de datos encontradas ($((TABLES-1)) tablas)"
+            else
+                print_warning "Base de datos existe pero pocas tablas encontradas. Verifica que el script SQL se ejecutó correctamente."
+            fi
         else
             print_error "Base de datos crm_ari no existe"
             print_warning "Ejecuta el script SQL desde phpMyAdmin primero"
