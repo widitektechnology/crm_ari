@@ -1,4 +1,4 @@
-"""
+""" 
 Router initialization module
 """
 # Import all routers to make them available for the main application
