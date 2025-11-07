@@ -11,11 +11,14 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # Production Environment Flag
+      - ENVIRONMENT=production
+      
       # Database Configuration - MySQL externo
-      - DB_HOST=host.docker.internal  # Para conectar a MySQL en el host
+      - DB_HOST=172.17.0.1  # IP del gateway Docker
       - DB_PORT=3306
       - DB_USERNAME=crm_user
-      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - DB_PASSWORD=crm_password_secure_2025
       - DB_DATABASE=crm_ari
       - DB_CHARSET=utf8mb4
       
@@ -33,31 +36,10 @@ services:
       
       # CORS Configuration
       - CORS_ORIGINS=https://crm.arifamilyassets.com,http://localhost:3000
-      
-      # AI Configuration
-      - AI_MODEL_PATH=/app/models
-      - AI_CLASSIFICATION_THRESHOLD=0.7
-      - AI_AGENT_SYSTEM_PROMPT=Responde el correo en nombre de Joel Araujo, utiliza un lenguaje amigable y poco técnico
-      
-      # Mail Configuration
-      - MAIL_SYNC_INTERVAL=15
-      - MAIL_MAX_ATTACHMENT_SIZE=25
-    volumes:
-      - backend_uploads:/app/uploads
-      - backend_logs:/app/logs
     networks:
       - crm_network
-    # Removemos depends_on de mysql ya que está externo
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Para Linux
-
-
-
-volumes:
-  backend_uploads:
-    driver: local
-  backend_logs:
-    driver: local
 
 networks:
   crm_network:
