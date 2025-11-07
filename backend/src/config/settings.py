@@ -2,10 +2,18 @@
 ERP System - Configuration Module
 Manages application configuration and environment variables
 """
+import os
 from typing import Optional, List
 from pydantic import Field, ConfigDict
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+# Importar configuración de producción
+try:
+    from .production_config import PRODUCTION_CONFIG
+    USE_PRODUCTION_CONFIG = True
+except ImportError:
+    USE_PRODUCTION_CONFIG = False
 
 
 class DatabaseSettings(BaseSettings):
@@ -20,6 +28,10 @@ class DatabaseSettings(BaseSettings):
     
     @property
     def connection_string(self) -> str:
+        # Si estamos en producción, usar configuración hardcoded
+        if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
+            return PRODUCTION_CONFIG['database'].get_url()
+        
         return f"mysql+mysqlconnector://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
 
 
@@ -73,9 +85,22 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="allow"  # Permite campos extra del archivo .env
     )
+    
+    def __post_init__(self):
+        """Post initialization to override with production config if needed"""
+        if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
+            prod_config = PRODUCTION_CONFIG
+            # Override security settings
+            self.security.secret_key = prod_config['security'].SECRET_KEY
+            self.security.algorithm = prod_config['security'].JWT_ALGORITHM
+            self.security.access_token_expire_minutes = prod_config['security'].JWT_ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance"""
-    return Settings()
+    settings = Settings()
+    # Aplicar configuración de producción si es necesario
+    if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
+        settings.__post_init__()
+    return settings

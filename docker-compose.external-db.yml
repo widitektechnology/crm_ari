@@ -11,6 +11,9 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # Production Environment Flag
+      - ENVIRONMENT=production
+      
       # Database Configuration - MySQL externo
       - DB_HOST=172.17.0.1  # IP del gateway Docker
       - DB_PORT=3306
