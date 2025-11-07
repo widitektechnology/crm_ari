@@ -50,7 +50,11 @@ api.interceptors.response.use(
 export const apiService = {
   // Verificar salud del backend
   checkHealth: async () => {
-    const response = await api.get('/health')
+    // Health endpoint está en la raíz, no bajo /api
+    const healthUrl = import.meta.env.VITE_API_BASE_URL 
+      ? `${import.meta.env.VITE_API_BASE_URL}/health`
+      : '/health'
+    const response = await axios.get(healthUrl, { timeout: 5000 })
     return response.data
   },
 
