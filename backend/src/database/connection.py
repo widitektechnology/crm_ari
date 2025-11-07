@@ -3,7 +3,7 @@ Database connection and configuration
 """
 
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 import logging
@@ -63,7 +63,7 @@ def test_connection():
     """Probar la conexión a la base de datos"""
     try:
         with engine.connect() as conn:
-            result = conn.execute("SELECT 1")
+            result = conn.execute(text("SELECT 1"))
             return True
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
