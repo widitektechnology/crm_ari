@@ -89,7 +89,7 @@ async def login(
         "access_token": access_token,
         "token_type": "bearer",
         "expires_in": 1800,  # 30 minutes
-        "user": UserResponse.from_orm(user)
+        "user": UserResponse.model_validate(user)
     }
 
 @router.post("/register", response_model=UserResponse)
@@ -107,7 +107,7 @@ async def register(
             first_name=user_data.first_name,
             last_name=user_data.last_name
         )
-        return UserResponse.from_orm(user)
+        return UserResponse.model_validate(user)
     except HTTPException:
         raise
     except Exception as e:
@@ -133,7 +133,7 @@ async def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ):
     """Get current user information"""
-    return UserResponse.from_orm(current_user)
+    return UserResponse.model_validate(current_user)
 
 @router.post("/refresh-token", response_model=Token)
 async def refresh_token(
@@ -151,7 +151,7 @@ async def refresh_token(
         "access_token": access_token,
         "token_type": "bearer",
         "expires_in": 1800,
-        "user": UserResponse.from_orm(current_user)
+        "user": UserResponse.model_validate(current_user)
     }
 
 # OAuth2 compatible endpoint
@@ -181,5 +181,5 @@ async def login_for_access_token(
         "access_token": access_token,
         "token_type": "bearer",
         "expires_in": 1800,
-        "user": UserResponse.from_orm(user)
+        "user": UserResponse.model_validate(user)
     }
