@@ -4,7 +4,7 @@ Manages application configuration and environment variables
 """
 import os
 from typing import Optional, List
-from pydantic import Field, ConfigDict
+from pydantic import Field, ConfigDict, model_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -26,12 +26,21 @@ class DatabaseSettings(BaseSettings):
     
     model_config = ConfigDict(extra="allow")
     
+    @model_validator(mode='after')
+    def apply_production_config(self):
+        """Aplicar configuración de producción si es necesario"""
+        if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
+            print("🔧 Aplicando configuración de producción para la base de datos...")
+            prod_db = PRODUCTION_CONFIG['database']
+            self.host = prod_db.HOST
+            self.port = prod_db.PORT
+            self.username = prod_db.USERNAME
+            self.password = prod_db.PASSWORD
+            self.database = prod_db.DATABASE
+        return self
+    
     @property
     def connection_string(self) -> str:
-        # Si estamos en producción, usar configuración hardcoded
-        if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
-            return PRODUCTION_CONFIG['database'].get_url()
-        
         return f"mysql+mysqlconnector://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
 
 
@@ -42,6 +51,17 @@ class SecuritySettings(BaseSettings):
     access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     
     model_config = ConfigDict(extra="allow")
+    
+    @model_validator(mode='after')
+    def apply_production_config(self):
+        """Aplicar configuración de producción si es necesario"""
+        if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
+            print("🔧 Aplicando configuración de producción para seguridad...")
+            prod_sec = PRODUCTION_CONFIG['security']
+            self.secret_key = prod_sec.SECRET_KEY
+            self.algorithm = prod_sec.JWT_ALGORITHM
+            self.access_token_expire_minutes = prod_sec.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        return self
     
     
 class ExternalAPISettings(BaseSettings):
@@ -85,22 +105,11 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="allow"  # Permite campos extra del archivo .env
     )
-    
-    def __post_init__(self):
-        """Post initialization to override with production config if needed"""
-        if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
-            prod_config = PRODUCTION_CONFIG
-            # Override security settings
-            self.security.secret_key = prod_config['security'].SECRET_KEY
-            self.security.algorithm = prod_config['security'].JWT_ALGORITHM
-            self.security.access_token_expire_minutes = prod_config['security'].JWT_ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance"""
-    settings = Settings()
-    # Aplicar configuración de producción si es necesario
-    if USE_PRODUCTION_CONFIG and os.environ.get("ENVIRONMENT") == "production":
-        settings.__post_init__()
-    return settings
+    print(f"🔍 ENVIRONMENT = {os.environ.get('ENVIRONMENT', 'NOT SET')}")
+    print(f"🔍 USE_PRODUCTION_CONFIG = {USE_PRODUCTION_CONFIG}")
+    return Settings()
