@@ -59,25 +59,14 @@ class Settings(BaseSettings):
     app_version: str = Field(default="1.0.0", env="APP_VERSION")
     debug: bool = Field(default=True, env="DEBUG")
     
-    # Sub-configurations - se inicializarán correctamente en __post_init__
-    database: Optional[DatabaseSettings] = None
-    security: Optional[SecuritySettings] = None
-    external_api: Optional[ExternalAPISettings] = None
-    ai: Optional[AISettings] = None
+    # Sub-configurations - se inicializarán directamente con las variables de entorno
+    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    security: SecuritySettings = Field(default_factory=SecuritySettings)
+    external_api: ExternalAPISettings = Field(default_factory=ExternalAPISettings)
+    ai: AISettings = Field(default_factory=AISettings)
     
     # Multi-company support
     default_company_id: Optional[int] = Field(default=None, env="DEFAULT_COMPANY_ID")
-    
-    def model_post_init(self, __context) -> None:
-        """Initialize sub-configurations after main settings are loaded"""
-        if self.database is None:
-            self.database = DatabaseSettings()
-        if self.security is None:
-            self.security = SecuritySettings()
-        if self.external_api is None:
-            self.external_api = ExternalAPISettings()
-        if self.ai is None:
-            self.ai = AISettings()
     
     model_config = ConfigDict(
         env_file=".env",

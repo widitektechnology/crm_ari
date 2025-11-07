@@ -12,10 +12,10 @@ services:
       - "8000:8000"
     environment:
       # Database Configuration - MySQL externo
-      - DB_HOST=host.docker.internal  # Para conectar a MySQL en el host
+      - DB_HOST=172.17.0.1  # IP del gateway Docker
       - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - DB_USERNAME=crm_user
+      - DB_PASSWORD=crm_password_secure_2025
       - DB_DATABASE=crm_ari
       - DB_CHARSET=utf8mb4
       
