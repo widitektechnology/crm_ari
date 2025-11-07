@@ -7,7 +7,7 @@ docker stop crm_ari_backend 2>/dev/null || true
 docker rm crm_ari_backend 2>/dev/null || true
 
 echo "🔨 Construyendo nueva imagen..."
-cd /home/crm_ari || exit 1
+cd /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com || exit 1
 docker build --no-cache -t backend_backend .
 
 if [ $? -ne 0 ]; then
