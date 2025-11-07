@@ -7,48 +7,48 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 import logging
+from ..config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
-# Configuración de la base de datos desde variables de entorno
-class DatabaseConfig:
-    def __init__(self):
-        self.host = os.getenv("DB_HOST", "localhost")
-        self.port = os.getenv("DB_PORT", "3306")
-        self.username = os.getenv("DB_USERNAME", "root")
-        self.password = os.getenv("DB_PASSWORD", "")
-        self.database = os.getenv("DB_DATABASE", "crm_ari")
-        self.charset = os.getenv("DB_CHARSET", "utf8mb4")
-        
-    @property
-    def url(self):
-        return f"mysql+mysqlconnector://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}?charset={self.charset}"
+# Global variables for lazy initialization
+_engine = None
+_SessionLocal = None
 
-# Instancia global de configuración
-db_config = DatabaseConfig()
+def get_engine():
+    """Get or create SQLAlchemy engine (lazy initialization)"""
+    global _engine
+    if _engine is None:
+        # Get settings fresh each time to ensure production config is applied
+        settings = get_settings()
+        logger.info(f"🔗 Creating database engine with connection string: {settings.database.connection_string}")
+        _engine = create_engine(
+            settings.database.connection_string,
+            echo=settings.debug,
+            pool_size=10,
+            max_overflow=20,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            connect_args={
+                "autocommit": False,
+                "use_unicode": True,
+                "charset": "utf8mb4"
+            }
+        )
+    return _engine
 
-# Crear engine de SQLAlchemy
-engine = create_engine(
-    db_config.url,
-    echo=os.getenv("DB_ECHO", "false").lower() == "true",
-    pool_size=int(os.getenv("DB_POOL_SIZE", "10")),
-    max_overflow=int(os.getenv("DB_MAX_OVERFLOW", "20")),
-    pool_pre_ping=True,
-    pool_recycle=3600,
-    connect_args={
-        "autocommit": False,
-        "use_unicode": True,
-        "collation": "utf8mb4_unicode_ci"
-    }
-)
-
-# Crear sessionmaker
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_session_local():
+    """Get or create session factory (lazy initialization)"""
+    global _SessionLocal
+    if _SessionLocal is None:
+        _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+    return _SessionLocal
 
 @contextmanager
 def get_db_session():
     """Context manager para manejar sesiones de base de datos"""
-    session = SessionLocal()
+    session_factory = get_session_local()
+    session = session_factory()
     try:
         yield session
         session.commit()
@@ -62,7 +62,7 @@ def get_db_session():
 def test_connection():
     """Probar la conexión a la base de datos"""
     try:
-        with engine.connect() as conn:
+        with get_engine().connect() as conn:
             result = conn.execute(text("SELECT 1"))
             return True
     except Exception as e:
@@ -71,7 +71,8 @@ def test_connection():
 
 def get_db():
     """Dependency para FastAPI"""
-    db = SessionLocal()
+    session_factory = get_session_local()
+    db = session_factory()
     try:
         yield db
     finally:

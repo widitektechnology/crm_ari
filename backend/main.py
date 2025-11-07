@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Database imports
-from src.database.connection import test_connection, engine
+from src.database.connection import test_connection, get_engine
 from src.database.models import init_db, Base
 
 # Services
@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database...")
     try:
         # Create tables if they don't exist
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=get_engine())
         
         # Initialize with default data
         init_db()

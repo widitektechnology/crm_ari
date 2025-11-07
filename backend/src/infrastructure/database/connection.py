@@ -11,22 +11,34 @@ from ...config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
-# Database configuration
-settings = get_settings()
+# Global variables for lazy initialization
+_engine = None
+_SessionLocal = None
 
-# Create SQLAlchemy engine
-engine = create_engine(
-    settings.database.connection_string,
-    poolclass=QueuePool,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,
-    pool_recycle=3600,
-    echo=settings.debug  # Log SQL queries in debug mode
-)
+def get_engine():
+    """Get or create SQLAlchemy engine (lazy initialization)"""
+    global _engine
+    if _engine is None:
+        # Get settings fresh each time to ensure production config is applied
+        settings = get_settings()
+        logger.info(f"🔗 Creating database engine with connection string: {settings.database.connection_string}")
+        _engine = create_engine(
+            settings.database.connection_string,
+            poolclass=QueuePool,
+            pool_size=10,
+            max_overflow=20,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            echo=settings.debug  # Log SQL queries in debug mode
+        )
+    return _engine
 
-# Create session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_session_local():
+    """Get or create session factory (lazy initialization)"""
+    global _SessionLocal
+    if _SessionLocal is None:
+        _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+    return _SessionLocal
 
 # Create base class for ORM models
 Base = declarative_base()
@@ -40,7 +52,8 @@ def get_db_session() -> Generator[Session, None, None]:
     Dependency function to get database session
     Used for dependency injection in FastAPI
     """
-    session = SessionLocal()
+    session_factory = get_session_local()
+    session = session_factory()
     try:
         yield session
     except Exception as e:
@@ -54,7 +67,7 @@ def get_db_session() -> Generator[Session, None, None]:
 def create_tables():
     """Create all tables in the database"""
     try:
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=get_engine())
         logger.info("Database tables created successfully")
     except Exception as e:
         logger.error(f"Error creating database tables: {str(e)}")
@@ -64,7 +77,7 @@ def create_tables():
 def drop_tables():
     """Drop all tables in the database"""
     try:
-        Base.metadata.drop_all(bind=engine)
+        Base.metadata.drop_all(bind=get_engine())
         logger.info("Database tables dropped successfully")
     except Exception as e:
         logger.error(f"Error dropping database tables: {str(e)}")

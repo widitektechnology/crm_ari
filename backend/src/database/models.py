@@ -12,24 +12,8 @@ from datetime import datetime
 from typing import Optional
 import bcrypt
 
-# Configuración de la base de datos
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "mysql+mysqlconnector://root:password@localhost/crm_ari"
-)
-
-# Crear engine de SQLAlchemy
-engine = create_engine(
-    DATABASE_URL,
-    echo=False,  # Set to True for SQL debugging
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,
-    pool_recycle=3600
-)
-
-# Crear sessionmaker
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Import database connection functions
+from .connection import get_engine, get_session_local
 
 # Base para los modelos
 Base = declarative_base()
@@ -493,7 +477,7 @@ def get_db():
 
 def create_tables():
     """Crear todas las tablas"""
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=get_engine())
     print("✅ Tablas creadas exitosamente")
 
 
@@ -501,6 +485,7 @@ def init_db():
     """Inicializar la base de datos con datos por defecto"""
     create_tables()
     
+    SessionLocal = get_session_local()
     db = SessionLocal()
     try:
         # Verificar si ya existe el usuario admin
