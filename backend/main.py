@@ -27,6 +27,7 @@ from src.services.auth import AuthService, get_current_user
 # Import all routers
 from src.api.routers import (
     companies,
+    employees,
     ai,
     payroll,
     finance,
@@ -229,6 +230,7 @@ async def health_check():
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 app.include_router(users_router, prefix="/api/users", tags=["users"])
 app.include_router(companies.router, prefix="/api/companies", tags=["companies"])
+app.include_router(employees.router, prefix="/api/employees", tags=["employees"])
 app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
 app.include_router(payroll.router, prefix="/api/payroll", tags=["payroll"])
 app.include_router(finance.router, prefix="/api/finance", tags=["finance"])
