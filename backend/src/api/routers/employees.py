@@ -9,11 +9,11 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import logging
 
-from ...infrastructure.database.connection import get_db_session
+from ...database.connection import get_db_session
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/employees")
+router = APIRouter()
 
 # Pydantic models for request/response
 class EmployeeBase(BaseModel):
