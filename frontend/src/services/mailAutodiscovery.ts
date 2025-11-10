@@ -384,14 +384,51 @@ export class MailAutodiscoveryService {
    * Intenta configuraciones comunes basadas en patrones
    */
   private tryCommonConfigurations(domain: string, email: string, name: string): AutodiscoverResult {
-    // Patrones comunes de servidores
+    // Patrones comunes de servidores basados en el dominio
     const commonPatterns = [
-      { imap: `imap.${domain}`, smtp: `smtp.${domain}` },
-      { imap: `mail.${domain}`, smtp: `mail.${domain}` },
-      { imap: domain, smtp: domain }
+      // Patrón 1: mail.domain.com (más común)
+      { 
+        imap: `mail.${domain}`, 
+        smtp: `mail.${domain}`,
+        imapPort: 993,
+        smtpPort: 587,
+        description: "Configuración estándar"
+      },
+      // Patrón 2: imap/smtp específicos
+      { 
+        imap: `imap.${domain}`, 
+        smtp: `smtp.${domain}`,
+        imapPort: 993,
+        smtpPort: 587,
+        description: "Servidores dedicados"
+      },
+      // Patrón 3: dominio directo
+      { 
+        imap: domain, 
+        smtp: domain,
+        imapPort: 993,
+        smtpPort: 587,
+        description: "Servidor único"
+      },
+      // Patrón 4: configuración alternativa con puerto 465
+      { 
+        imap: `mail.${domain}`, 
+        smtp: `mail.${domain}`,
+        imapPort: 993,
+        smtpPort: 465,
+        description: "SMTP SSL directo"
+      },
+      // Patrón 5: puertos no SSL como fallback
+      { 
+        imap: `mail.${domain}`, 
+        smtp: `mail.${domain}`,
+        imapPort: 143,
+        smtpPort: 25,
+        description: "Sin encriptación (no recomendado)"
+      }
     ]
 
-    // Intentar el primer patrón como configuración por defecto
+    // Usar el primer patrón como configuración por defecto
     const pattern = commonPatterns[0]
     
     return {
@@ -403,15 +440,15 @@ export class MailAutodiscoveryService {
         settings: {
           incoming: {
             server: pattern.imap,
-            port: 993,
-            ssl: true,
+            port: pattern.imapPort,
+            ssl: pattern.imapPort === 993,
             username: email,
             password: ''
           },
           outgoing: {
             server: pattern.smtp,
-            port: 587,
-            ssl: true,
+            port: pattern.smtpPort,
+            ssl: pattern.smtpPort === 465 || pattern.smtpPort === 587,
             username: email,
             password: ''
           }
@@ -434,12 +471,17 @@ export class MailAutodiscoveryService {
     }
 
     console.log('🔍 Probando conectividad IMAP/SMTP...')
+    console.log('📧 Configuración:', {
+      imap: `${config.settings.incoming.server}:${config.settings.incoming.port}`,
+      smtp: `${config.settings.outgoing.server}:${config.settings.outgoing.port}`
+    })
 
     try {
       // Usar el servicio de conexión real
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL 
         ? `${import.meta.env.VITE_API_BASE_URL}/api/mail` 
         : '/api/mail'
+        
       const response = await fetch(`${apiBaseUrl}/test-connection`, {
         method: 'POST',
         headers: {
@@ -451,17 +493,58 @@ export class MailAutodiscoveryService {
         }),
       })
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const statusText = response.statusText || `HTTP ${response.status}`
+        return { 
+          success: false, 
+          error: errorData.detail || errorData.message || `Error del servidor: ${statusText}`
+        }
+      }
+
       const result = await response.json()
       
-      if (!response.ok) {
-        return { success: false, error: result.error || 'Error de conexión' }
+      if (!result.success) {
+        const errors = result.errors?.filter(Boolean) || []
+        const details = result.details || {}
+        
+        let errorMsg = 'Error de conexión: '
+        if (errors.length > 0) {
+          errorMsg += errors.join('; ')
+        } else if (details.imap && details.smtp) {
+          errorMsg += `IMAP: ${details.imap}, SMTP: ${details.smtp}`
+        } else {
+          errorMsg += 'Verificar configuración del servidor'
+        }
+        
+        return { success: false, error: errorMsg }
       }
 
       console.log('✅ Conexión exitosa')
       return { success: true }
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error testing connection:', error)
-      return { success: false, error: `Error de conectividad: ${error}` }
+      
+      // Manejar diferentes tipos de errores de red
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        return { 
+          success: false, 
+          error: 'No se puede conectar al servidor CRM. Verificar conectividad de red.' 
+        }
+      }
+      
+      if (error.name === 'AbortError') {
+        return { 
+          success: false, 
+          error: 'Tiempo de espera agotado. El servidor puede estar sobrecargado.' 
+        }
+      }
+      
+      return { 
+        success: false, 
+        error: `Error de conectividad: ${error.message || 'Problema desconocido'}` 
+      }
     }
   }
 

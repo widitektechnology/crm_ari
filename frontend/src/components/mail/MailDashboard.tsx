@@ -174,8 +174,8 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
   if (showAccountSetup) {
     return (
       <div className={`bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden ${className}`} style={{ height: '700px' }}>
-        <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-50 to-indigo-50">
-          <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full mx-4 border border-gray-100">
+        <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-2xl text-white">📧</span>

@@ -207,11 +207,21 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
     
     // Mostrar información de autodiscovery si no se detectó proveedor conocido
     if (formData.email && step === 'manual') {
+      const domain = formData.email.split('@')[1]
       return (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">🔍</span>
-            <span className="font-medium text-yellow-900">Configuración personalizada</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-lg">🔍</span>
+              <span className="font-medium text-yellow-900">Configuración personalizada</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => tryCommonConfigurations(domain)}
+              className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded hover:bg-yellow-200"
+            >
+              📋 Probar configuraciones comunes
+            </button>
           </div>
           <p className="text-sm text-yellow-700 mt-1">
             No se pudo detectar automáticamente. Verifica la configuración manual.
@@ -221,6 +231,48 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
     }
     
     return null
+  }
+
+  const tryCommonConfigurations = (domain: string) => {
+    // Configuraciones comunes para probar
+    const commonConfigs = [
+      {
+        name: `mail.${domain}`,
+        incoming: { server: `mail.${domain}`, port: 993, ssl: true },
+        outgoing: { server: `mail.${domain}`, port: 587, ssl: true }
+      },
+      {
+        name: `imap/smtp.${domain}`,
+        incoming: { server: `imap.${domain}`, port: 993, ssl: true },
+        outgoing: { server: `smtp.${domain}`, port: 587, ssl: true }
+      },
+      {
+        name: `${domain} (directo)`,
+        incoming: { server: domain, port: 993, ssl: true },
+        outgoing: { server: domain, port: 587, ssl: true }
+      }
+    ]
+
+    // Aplicar la primera configuración común
+    const config = commonConfigs[0]
+    setFormData(prev => ({
+      ...prev,
+      settings: {
+        incoming: {
+          ...config.incoming,
+          username: formData.email || '',
+          password: prev.settings?.incoming.password || ''
+        },
+        outgoing: {
+          ...config.outgoing,
+          username: formData.email || '',
+          password: prev.settings?.outgoing.password || ''
+        }
+      }
+    }))
+    
+    // Mostrar sugerencia
+    setErrors([`💡 Configuración aplicada: ${config.name}. Ajusta si es necesario.`])
   }
 
   if (step === 'testing') {
@@ -285,7 +337,7 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
   }
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="w-full">
       {errors.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           <div className="flex">
@@ -368,8 +420,8 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
             {/* Servidor entrante */}
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <h4 className="font-medium text-gray-900 mb-3">Servidor entrante (IMAP)</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
+              <div className="space-y-3">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Servidor
                   </label>
@@ -388,41 +440,43 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Puerto
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.settings?.incoming.port || ''}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: {
-                        ...prev.settings!,
-                        incoming: { ...prev.settings!.incoming, port: parseInt(e.target.value) }
-                      }
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="incomingSsl"
-                    checked={formData.settings?.incoming.ssl || false}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: {
-                        ...prev.settings!,
-                        incoming: { ...prev.settings!.incoming, ssl: e.target.checked }
-                      }
-                    }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="incomingSsl" className="ml-2 text-sm text-gray-700">
-                    SSL/TLS
-                  </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Puerto
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.settings?.incoming.port || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        settings: {
+                          ...prev.settings!,
+                          incoming: { ...prev.settings!.incoming, port: parseInt(e.target.value) }
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div className="flex items-center pt-6">
+                    <input
+                      type="checkbox"
+                      id="incomingSsl"
+                      checked={formData.settings?.incoming.ssl || false}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        settings: {
+                          ...prev.settings!,
+                          incoming: { ...prev.settings!.incoming, ssl: e.target.checked }
+                        }
+                      }))}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="incomingSsl" className="ml-2 text-sm text-gray-700">
+                      SSL/TLS
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -430,8 +484,8 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
             {/* Servidor saliente */}
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <h4 className="font-medium text-gray-900 mb-3">Servidor saliente (SMTP)</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
+              <div className="space-y-3">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Servidor
                   </label>
@@ -450,47 +504,50 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Puerto
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.settings?.outgoing.port || ''}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: {
-                        ...prev.settings!,
-                        outgoing: { ...prev.settings!.outgoing, port: parseInt(e.target.value) }
-                      }
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="outgoingSsl"
-                    checked={formData.settings?.outgoing.ssl || false}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      settings: {
-                        ...prev.settings!,
-                        outgoing: { ...prev.settings!.outgoing, ssl: e.target.checked }
-                      }
-                    }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label htmlFor="outgoingSsl" className="ml-2 text-sm text-gray-700">
-                    SSL/TLS
-                  </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Puerto
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.settings?.outgoing.port || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        settings: {
+                          ...prev.settings!,
+                          outgoing: { ...prev.settings!.outgoing, port: parseInt(e.target.value) }
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
+                  <div className="flex items-center pt-6">
+                    <input
+                      type="checkbox"
+                      id="outgoingSsl"
+                      checked={formData.settings?.outgoing.ssl || false}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        settings: {
+                          ...prev.settings!,
+                          outgoing: { ...prev.settings!.outgoing, ssl: e.target.checked }
+                        }
+                      }))}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="outgoingSsl" className="ml-2 text-sm text-gray-700">
+                      SSL/TLS
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Credenciales */}
-            <div className="space-y-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+              <h4 className="font-medium text-gray-900 mb-3">Credenciales de acceso</h4>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Usuario
@@ -528,6 +585,16 @@ export default function AccountSetup({ onAccountAdded, onCancel, initialData }: 
                   placeholder="••••••••"
                   required
                 />
+              </div>
+              {/* Consejos de configuración */}
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <h5 className="text-sm font-medium text-blue-900 mb-2">💡 Consejos de configuración</h5>
+                <div className="text-xs text-blue-700 space-y-1">
+                  <p>• <strong>Gmail/Google:</strong> Usa contraseña de aplicación (no la contraseña normal)</p>
+                  <p>• <strong>Outlook/Hotmail:</strong> Habilita IMAP en configuraciones</p>
+                  <p>• <strong>Servidores propios:</strong> Verifica que IMAP/SMTP estén habilitados</p>
+                  <p>• <strong>Puertos comunes:</strong> IMAP 993 (SSL), SMTP 587 (TLS) o 465 (SSL)</p>
+                </div>
               </div>
             </div>
           </div>
