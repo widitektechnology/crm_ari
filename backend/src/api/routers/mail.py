@@ -18,7 +18,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/mail", tags=["mail"])
+router = APIRouter(tags=["mail"])
 
 # Modelos para correo
 class ServerSettings(BaseModel):
