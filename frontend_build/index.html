@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🚀 CRM ARI - Sistema Empresarial</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- CSS personalizado inline solo para loading inicial -->
+    <style>
+      /* Loading inicial - crítico para funcionar antes de que Tailwind se cargue */
+      .loading-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1e1b4b, #581c87, #be185d);
+        z-index: 9999;
+      }
+      
+      .loading-content {
+        text-align: center;
+        color: white;
+      }
+      
+      .loading-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 5rem;
+        height: 5rem;
+        background: linear-gradient(to bottom right, #60a5fa, #8b5cf6);
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: pulse 2s infinite;
+      }
+      
+      .loading-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: linear-gradient(to right, #dbeafe, #e0e7ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      
+      .loading-bar {
+        width: 4rem;
+        height: 0.25rem;
+        background: linear-gradient(to right, #60a5fa, #8b5cf6);
+        border-radius: 9999px;
+        margin: 0 auto;
+        animation: pulse 2s infinite;
+      }
+      
+      .loading-text {
+        margin-top: 1rem;
+        color: #dbeafe;
+        opacity: 0.8;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-DQ4p73s4.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-Dfoqj1Wf.js">
+    <link rel="modulepreload" crossorigin href="/assets/router-6S1-IzBt.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-DeUavxrj.css">
+    <!-- CSS DE TEST PARA DEBUGGING -->
+    <style>
+      .from-slate-50 { 
+        --tw-gradient-from: #f8fafc !important;
+        --tw-gradient-to: rgb(248 250 252 / 0) !important;
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+      }
+      .via-blue-50 { 
+        --tw-gradient-to: rgb(239 246 255 / 0) !important;
+        --tw-gradient-stops: var(--tw-gradient-from), #eff6ff, var(--tw-gradient-to) !important;
+      }
+      .to-indigo-100 { 
+        --tw-gradient-to: #e0e7ff !important;
+      }
+      .from-blue-500 {
+        --tw-gradient-from: #3b82f6 !important;
+        --tw-gradient-to: rgb(59 130 246 / 0) !important;
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+      }
+      .to-purple-600 {
+        --tw-gradient-to: #9333ea !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading inicial elegante -->
+    <div id="loading" class="loading-screen">
+      <div class="loading-content">
+        <div class="loading-icon">
+          <span style="font-size: 1.875rem;">🚀</span>
+        </div>
+        <h1 class="loading-title">CRM ARI</h1>
+        <div class="loading-bar"></div>
+        <p class="loading-text">Cargando sistema empresarial...</p>
+      </div>
+    </div>
+    
+    <div id="root"></div>
+
+    
+    <!-- Remover loading cuando React esté listo -->
+    <script>
+      // Remover loading después de 3 segundos máximo
+      setTimeout(() => {
+        const loading = document.getElementById('loading');
+        if (loading) {
+          loading.style.opacity = '0';
+          loading.style.transition = 'opacity 0.5s ease-out';
+          setTimeout(() => loading?.remove(), 500);
+        }
+      }, 3000);
+      
+      // Remover loading cuando React monte
+      const observer = new MutationObserver(() => {
+        const root = document.getElementById('root');
+        if (root && root.children.length > 0) {
+          const loading = document.getElementById('loading');
+          if (loading) {
+            loading.style.opacity = '0';
+            loading.style.transition = 'opacity 0.5s ease-out';
+            setTimeout(() => loading?.remove(), 500);
+          }
+          observer.disconnect();
+        }
+      });
+      
+      observer.observe(document.getElementById('root'), {
+        childList: true,
+        subtree: true
+      });
+    </script>
+  </body>
+</html>
