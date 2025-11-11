@@ -14,6 +14,9 @@ const API_BASE_URL = window.location.hostname === 'crm.arifamilyassets.com'
 const SECURE_API_BASE_URL = API_BASE_URL.replace(/^http:/, 'https:')
 
 console.log('🔧 API_BASE_URL configurada:', SECURE_API_BASE_URL)
+console.log('🔍 Window location:', window.location)
+console.log('🔍 Hostname check:', window.location.hostname === 'crm.arifamilyassets.com')
+console.log('🔍 Environment VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL)
 
 // Crear instancia de axios
 const api = axios.create({
@@ -24,13 +27,33 @@ const api = axios.create({
   },
 })
 
-// Interceptor para agregar token de autenticación
+// Interceptor para agregar token de autenticación Y FORZAR HTTPS
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // 🔒 ULTRA-FORZAR HTTPS: interceptar CUALQUIER URL que use HTTP
+    if (config.baseURL && config.baseURL.startsWith('http:')) {
+      config.baseURL = config.baseURL.replace(/^http:/, 'https:')
+      console.warn('🚨 AXIOS HTTP INTERCEPTED - Forced to HTTPS:', config.baseURL)
+    }
+    
+    if (config.url && config.url.startsWith('http:')) {
+      config.url = config.url.replace(/^http:/, 'https:')
+      console.warn('🚨 AXIOS HTTP URL INTERCEPTED - Forced to HTTPS:', config.url)
+    }
+    
+    // Debug: loggear TODAS las peticiones
+    console.log('🌐 AXIOS REQUEST:', {
+      method: config.method,
+      baseURL: config.baseURL,
+      url: config.url,
+      fullUrl: (config.baseURL || '') + (config.url || '')
+    })
+    
     return config
   },
   (error) => {
