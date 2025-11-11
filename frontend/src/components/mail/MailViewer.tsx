@@ -150,9 +150,9 @@ export default function MailViewer({
                 <div className="text-sm text-gray-600">
                   <p>
                     <span className="font-medium">Para:</span>{' '}
-                    {message.to.map(to => to.name || to.email).join(', ')}
+                    {Array.isArray(message.to) ? message.to.map(to => to.name || to.email).join(', ') : ''}
                   </p>
-                  {message.cc && message.cc.length > 0 && (
+                  {message.cc && Array.isArray(message.cc) && message.cc.length > 0 && (
                     <p>
                       <span className="font-medium">CC:</span>{' '}
                       {message.cc.map(cc => cc.name || cc.email).join(', ')}
@@ -192,7 +192,7 @@ export default function MailViewer({
                     <p>{message.folderId}</p>
                   </div>
                 </div>
-                {message.labels.length > 0 && (
+                {Array.isArray(message.labels) && message.labels.length > 0 && (
                   <div>
                     <span className="font-medium">Etiquetas:</span>
                     <div className="flex flex-wrap gap-1 mt-1">
@@ -213,7 +213,7 @@ export default function MailViewer({
         </div>
 
         {/* Attachments */}
-        {message.attachments.length > 0 && (
+        {Array.isArray(message.attachments) && message.attachments.length > 0 && (
           <div className="mt-4">
             <h3 className="text-sm font-medium text-gray-700 mb-2">
               Archivos adjuntos ({message.attachments.length})

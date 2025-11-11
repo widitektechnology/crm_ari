@@ -41,6 +41,9 @@ export default function MailList({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
   }
 
+  // Verificación de seguridad: asegurar que messages sea un array
+  const safeMessages = Array.isArray(messages) ? messages : []
+
   if (isLoading) {
     return (
       <div className={`flex items-center justify-center h-full ${className}`}>
@@ -52,7 +55,7 @@ export default function MailList({
     )
   }
 
-  if (messages.length === 0) {
+  if (safeMessages.length === 0) {
     return (
       <div className={`flex items-center justify-center h-full ${className}`}>
         <div className="text-center">
@@ -69,7 +72,7 @@ export default function MailList({
   return (
     <div className={`overflow-y-auto ${className}`}>
       <div className="divide-y divide-gray-100">
-        {messages.map((message) => {
+        {safeMessages.map((message) => {
           const isSelected = currentMessage?.id === message.id
           const isUnread = !message.isRead
           

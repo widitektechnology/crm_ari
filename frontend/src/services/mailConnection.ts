@@ -82,8 +82,19 @@ export class MailConnectionService {
         throw new Error('Error syncing messages')
       }
 
-      const messages: MailMessage[] = await response.json()
-      return messages
+      const data = await response.json()
+      
+      // Asegurar que siempre devolvemos un array válido
+      if (Array.isArray(data)) {
+        return data
+      } else if (data && Array.isArray(data.messages)) {
+        return data.messages
+      } else if (data && Array.isArray(data.value)) {
+        return data.value
+      } else {
+        console.warn('syncMessages: Response is not an array:', data)
+        return []
+      }
     } catch (error) {
       console.error('Error syncing messages:', error)
       throw error
