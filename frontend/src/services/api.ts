@@ -1,16 +1,19 @@
 import axios from 'axios'
 
 // Configuración base de la API usando variable de entorno
-// El backend expone los endpoints directamente bajo /api (sin versioning)
+// FORZAR HTTPS en producción
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
   ? `${import.meta.env.VITE_API_BASE_URL}/api` 
-  : `/api`
+  : `${window.location.origin}/api`
 
-console.log('🔧 API_BASE_URL configurada:', API_BASE_URL)
+// Asegurar que siempre sea HTTPS en producción
+const SECURE_API_BASE_URL = API_BASE_URL.replace('http://crm.arifamilyassets.com', 'https://crm.arifamilyassets.com')
+
+console.log('🔧 API_BASE_URL configurada:', SECURE_API_BASE_URL)
 
 // Crear instancia de axios
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: SECURE_API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -52,12 +55,16 @@ api.interceptors.response.use(
 export const apiService = {
   // Verificar salud del backend
   checkHealth: async () => {
-    // Health endpoint está en la raíz, no bajo /api
+    // Health endpoint está en la raíz, no bajo /api  
     const healthUrl = import.meta.env.VITE_API_BASE_URL 
       ? `${import.meta.env.VITE_API_BASE_URL}/health`
-      : `/health`
-    console.log('🩺 Verificando salud en:', healthUrl)
-    const response = await axios.get(healthUrl, { timeout: 5000 })
+      : `${window.location.origin}/health`
+    
+    // Forzar HTTPS en producción
+    const secureHealthUrl = healthUrl.replace('http://crm.arifamilyassets.com', 'https://crm.arifamilyassets.com')
+    
+    console.log('🩺 Verificando salud en:', secureHealthUrl)
+    const response = await axios.get(secureHealthUrl, { timeout: 5000 })
     return response.data
   },
 
