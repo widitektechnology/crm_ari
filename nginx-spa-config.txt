@@ -1,0 +1,62 @@
+# 🌐 CONFIGURACIÓN NGINX PARA SPA REACT + PROXY API
+
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name crm.arifamilyassets.com;
+
+    # SSL Configuration (si existe)
+    # ssl_certificate /path/to/cert.pem;
+    # ssl_certificate_key /path/to/private.key;
+
+    # Root directory
+    root /var/www/vhosts/arifamilyassets.com/crm.arifamilyassets.com;
+    index index.html;
+
+    # IMPORTANTE: Configuración para SPA (Single Page Application)
+    location / {
+        try_files $uri $uri/ /index.html;
+        
+        # Headers para cache de assets
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+        }
+    }
+
+    # Proxy para API Backend (FastAPI en puerto 8000)
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Health check endpoint
+    location /health {
+        proxy_pass http://127.0.0.1:8000/health;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Docs endpoint
+    location /docs {
+        proxy_pass http://127.0.0.1:8000/docs;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Security headers
+    add_header X-Frame-Options DENY;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+}
