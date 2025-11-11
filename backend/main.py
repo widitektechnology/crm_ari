@@ -225,6 +225,16 @@ async def health_check():
         "timestamp": "2025-11-06T14:00:00Z"
     }
 
+@app.get("/api/health")
+async def api_health_check():
+    """API Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "CRM ARI API",
+        "version": "2.0.0",
+        "mail_support": True
+    }
+
 
 # Include routers
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
