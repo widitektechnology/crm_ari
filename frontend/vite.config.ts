@@ -13,6 +13,10 @@ export default defineConfig({
       }
     }
   },
+  define: {
+    // Asegurar que las variables de entorno estén disponibles en build
+    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.VITE_API_BASE_URL || 'https://crm.arifamilyassets.com')
+  },
   build: {
     outDir: 'dist',
     sourcemap: false,
