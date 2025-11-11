@@ -48,17 +48,17 @@ location /api/ {
     add_header X-Frame-Options DENY always;
     add_header X-XSS-Protection "1; mode=block" always;
     
-    # Proxy al backend
-    proxy_pass http://127.0.0.1:8000/;
+    # Proxy al backend - CORREGIDO PARA CONSERVAR /api/
+    proxy_pass http://127.0.0.1:8000/api/;
     proxy_buffering off;
 }
 
-# Health check
+# Health check - CORREGIDO PARA CONSERVAR /api/
 location /health {
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto https;
     add_header Content-Security-Policy "upgrade-insecure-requests" always;
-    proxy_pass http://127.0.0.1:8000/health;
+    proxy_pass http://127.0.0.1:8000/api/health;
 }
 
 # SPA routing
