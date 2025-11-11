@@ -181,10 +181,13 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
                 <span className="text-2xl text-white">📧</span>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Configurar Sistema de Correo
+                {accounts.length === 0 ? 'Configurar Sistema de Correo' : 'Agregar Nueva Cuenta de Correo'}
               </h1>
               <p className="text-gray-600">
-                Agrega tu primera cuenta de correo para empezar a gestionar tus mensajes
+                {accounts.length === 0 
+                  ? 'Agrega tu primera cuenta de correo para empezar a gestionar tus mensajes'
+                  : 'Configura una nueva cuenta de correo para acceder a más bandejas de entrada'
+                }
               </p>
               <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
                 <p className="text-sm text-blue-700">
@@ -213,6 +216,13 @@ export default function MailDashboard({ className = '' }: MailDashboardProps) {
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             ✉️ Nuevo Mensaje
+          </button>
+          
+          <button
+            onClick={() => setShowAccountSetup(true)}
+            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-2 px-4 rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg"
+          >
+            ➕ Agregar Cuenta
           </button>
           
           {/* Estado de conexión */}
