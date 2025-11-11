@@ -1,11 +1,16 @@
 import axios from 'axios'
 
-// Configuración base de la API - FORZAR HTTPS SIEMPRE
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-  ? `${import.meta.env.VITE_API_BASE_URL}/api` 
-  : 'https://crm.arifamilyassets.com/api'  // HARDCODED HTTPS
+// Configuración HTTPS ULTRA-FORZADA - NUNCA HTTP
+const PRODUCTION_API_URL = 'https://crm.arifamilyassets.com/api'
 
-// Doble seguridad: asegurar que siempre sea HTTPS
+// SIEMPRE usar HTTPS en producción, ignorar variables de entorno
+const API_BASE_URL = window.location.hostname === 'crm.arifamilyassets.com' 
+  ? PRODUCTION_API_URL
+  : (import.meta.env.VITE_API_BASE_URL 
+      ? `${import.meta.env.VITE_API_BASE_URL}/api` 
+      : PRODUCTION_API_URL)
+
+// Triple seguridad: forzar HTTPS en TODAS las URLs
 const SECURE_API_BASE_URL = API_BASE_URL.replace(/^http:/, 'https:')
 
 console.log('🔧 API_BASE_URL configurada:', SECURE_API_BASE_URL)
@@ -54,12 +59,14 @@ api.interceptors.response.use(
 export const apiService = {
   // Verificar salud del backend
   checkHealth: async () => {
-    // Health endpoint - FORZAR HTTPS SIEMPRE
-    const healthUrl = import.meta.env.VITE_API_BASE_URL 
-      ? `${import.meta.env.VITE_API_BASE_URL}/health`
-      : 'https://crm.arifamilyassets.com/health'  // HARDCODED HTTPS
+    // ULTRA-FORZADO: HTTPS siempre para health check
+    const healthUrl = window.location.hostname === 'crm.arifamilyassets.com'
+      ? 'https://crm.arifamilyassets.com/health'
+      : (import.meta.env.VITE_API_BASE_URL 
+          ? `${import.meta.env.VITE_API_BASE_URL}/health`
+          : 'https://crm.arifamilyassets.com/health')
     
-    // Doble seguridad: forzar HTTPS
+    // Triple seguridad: forzar HTTPS
     const secureHealthUrl = healthUrl.replace(/^http:/, 'https:')
     
     console.log('🩺 Verificando salud en:', secureHealthUrl)
