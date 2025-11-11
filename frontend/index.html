@@ -6,45 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🚀 CRM ARI - Sistema Empresarial</title>
     
-    <!-- TailwindCSS CDN como fallback -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- CSS personalizado inline para garantizar funcionamiento -->
+    <!-- CSS personalizado inline solo para loading inicial -->
     <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      
-      body { 
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        background: linear-gradient(135deg, #1e1b4b, #581c87, #be185d);
-        min-height: 100vh;
-      }
-      
-      /* Animaciones críticas */
-      @keyframes blob {
-        0% { transform: translate(0px, 0px) scale(1); }
-        33% { transform: translate(30px, -50px) scale(1.1); }
-        66% { transform: translate(-20px, 20px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1); }
-      }
-      
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
-      }
-      
-      .animate-blob { animation: blob 7s infinite; }
-      .animation-delay-2000 { animation-delay: 2s; }
-      .animation-delay-4000 { animation-delay: 4s; }
-      .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-      
-      /* Loading inicial */
+      /* Loading inicial - crítico para funcionar antes de que Tailwind se cargue */
       .loading-screen {
         position: fixed;
         inset: 0;
@@ -55,40 +24,65 @@
         z-index: 9999;
       }
       
-      /* Scrollbar */
-      ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
-      ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #3b82f6, #8b5cf6); border-radius: 4px; }
-    </style>
-    
-    <!-- Configuración TailwindCSS -->
-    <script>
-      if (typeof tailwind !== 'undefined') {
-        tailwind.config = {
-          theme: {
-            extend: {
-              fontFamily: {
-                'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-              },
-              animation: {
-                'blob': 'blob 7s infinite',
-              }
-            }
-          }
-        }
+      .loading-content {
+        text-align: center;
+        color: white;
       }
-    </script>
+      
+      .loading-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 5rem;
+        height: 5rem;
+        background: linear-gradient(to bottom right, #60a5fa, #8b5cf6);
+        border-radius: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: pulse 2s infinite;
+      }
+      
+      .loading-title {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: linear-gradient(to right, #dbeafe, #e0e7ff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      
+      .loading-bar {
+        width: 4rem;
+        height: 0.25rem;
+        background: linear-gradient(to right, #60a5fa, #8b5cf6);
+        border-radius: 9999px;
+        margin: 0 auto;
+        animation: pulse 2s infinite;
+      }
+      
+      .loading-text {
+        margin-top: 1rem;
+        color: #dbeafe;
+        opacity: 0.8;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
+      }
+    </style>
   </head>
   <body>
     <!-- Loading inicial elegante -->
     <div id="loading" class="loading-screen">
-      <div class="text-center text-white">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl mb-6 shadow-2xl animate-pulse">
-          <span class="text-3xl">🚀</span>
+      <div class="loading-content">
+        <div class="loading-icon">
+          <span style="font-size: 1.875rem;">🚀</span>
         </div>
-        <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">CRM ARI</h1>
-        <div class="w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mx-auto animate-pulse"></div>
-        <p class="mt-4 text-blue-100 opacity-80">Cargando sistema empresarial...</p>
+        <h1 class="loading-title">CRM ARI</h1>
+        <div class="loading-bar"></div>
+        <p class="loading-text">Cargando sistema empresarial...</p>
       </div>
     </div>
     
