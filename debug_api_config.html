@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug API Config</title>
+</head>
+<body>
+    <h1>Debug de Configuración API</h1>
+    <p>Variable de entorno VITE_API_BASE_URL: <span id="vite-env">Cargando...</span></p>
+    <p>API_BASE_URL final: <span id="api-url">Cargando...</span></p>
+    
+    <script type="module">
+        // Simular la lógica de api.ts
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+          ? `${import.meta.env.VITE_API_BASE_URL}/api` 
+          : '/api'
+        
+        document.getElementById('vite-env').textContent = import.meta.env.VITE_API_BASE_URL || 'undefined'
+        document.getElementById('api-url').textContent = API_BASE_URL
+        
+        console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL)
+        console.log('API_BASE_URL:', API_BASE_URL)
+    </script>
+</body>
+</html>

@@ -6,7 +6,7 @@ import type { MailAccount, MailMessage, MailFolder, MailComposerData } from '../
 export class MailConnectionService {
   private baseUrl = import.meta.env.VITE_API_BASE_URL 
     ? `${import.meta.env.VITE_API_BASE_URL}/api/mail` 
-    : '/api/mail'
+    : `${window.location.protocol}//${window.location.hostname}/api/mail`
 
   /**
    * Prueba la conectividad real con el servidor IMAP/SMTP

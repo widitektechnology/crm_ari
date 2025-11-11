@@ -4,7 +4,7 @@ import axios from 'axios'
 // El backend expone los endpoints directamente bajo /api (sin versioning)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
   ? `${import.meta.env.VITE_API_BASE_URL}/api` 
-  : '/api'
+  : `${window.location.protocol}//${window.location.hostname}/api`
 
 // Crear instancia de axios
 const api = axios.create({
@@ -53,7 +53,7 @@ export const apiService = {
     // Health endpoint está en la raíz, no bajo /api
     const healthUrl = import.meta.env.VITE_API_BASE_URL 
       ? `${import.meta.env.VITE_API_BASE_URL}/health`
-      : '/health'
+      : `${window.location.protocol}//${window.location.hostname}/health`
     const response = await axios.get(healthUrl, { timeout: 5000 })
     return response.data
   },
